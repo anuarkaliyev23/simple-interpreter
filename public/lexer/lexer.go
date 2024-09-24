@@ -25,7 +25,15 @@ func (r *BasicLexer) advance() {
 			r.IsReachedEOF = true
 		}
 	}
+}
 
+func (r *BasicLexer) Initialize() error {
+	token, err := r.NextToken()
+	if err != nil {
+		return err
+	}
+	r.CurrentToken = &token
+	return nil
 }
 
 func (r *BasicLexer) currentRune() rune {
@@ -61,7 +69,7 @@ func (r *BasicLexer) skipWhitespace() {
 	}
 }
 
-func (r *BasicLexer) NextToken() (*BasicToken, error) {
+func (r *BasicLexer) NextToken() (BasicToken, error) {
 	for !r.IsReachedEOF {
 		if r.isOnSpace() {
 			r.skipWhitespace()
@@ -71,30 +79,33 @@ func (r *BasicLexer) NextToken() (*BasicToken, error) {
 		if r.isOnDigit() {
 			result, err := r.parseInteger()
 			if err != nil {
-				return nil, err
+				return BasicToken{}, err
 			}
 			token := BasicToken{TokenType: INTEGER, TokenValue: result}
-			return &token, nil
+			return token,  nil
 		} else if r.currentRune() == '+' {
 			token := BasicToken{TokenType: PLUS}
-			return &token, nil
+			r.advance()
+			return token, nil
 		} else if r.currentRune() == '-' {
 			token := BasicToken{TokenType: MINUS}
-			return &token, nil
+			r.advance()
+			return token, nil
 		}
 
 	}
 	token := BasicToken{TokenType: EOF}
-	return &token, nil
+	return token, nil
 }
 
-func (r *BasicLexer) Eat(tokenType TokenType) error {
-	if r.CurrentToken == nil || r.CurrentToken.TokenType == tokenType {
+func (r *BasicLexer) Eat(tokenType TokenType) (error) {
+	if r.CurrentToken.TokenType == tokenType {
 		token, err := r.NextToken()
 		if err != nil {
 			return err
 		}
-		r.CurrentToken = token
+
+		r.CurrentToken = &token
 		return nil
 	} 
 	return fmt.Errorf("Cannot eat token of type: %v, current token type: %v", tokenType, r.CurrentToken.TokenType)

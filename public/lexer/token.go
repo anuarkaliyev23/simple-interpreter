@@ -1,6 +1,5 @@
 package lexer 
 
-import "fmt"
 
 type TokenType int
 
@@ -18,17 +17,5 @@ type BasicToken struct {
 
 func (r BasicToken) HasValue() bool {
 	return r.TokenType == INTEGER
-}
-
-func (r BasicToken) Value() (any, error) {
-	if r.HasValue() {
-		return r.TokenValue, nil
-	} else {
-		return nil, fmt.Errorf("Token of type %v cannot have value", r.TokenValue)
-	}
-}
-
-func (r BasicToken) Type() TokenType {
-	return r.TokenType
 }
 

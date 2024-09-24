@@ -1,5 +1,12 @@
 package main
 
+import (
+	"github.com/anuarkaliyev23/simple-interpreter-go/public/repl"
+)
+
 func main() {
-	print("Hello, World!")
+	repl := repl.NewRepl()
+	for true {
+		repl.Iter()
+	}
 }

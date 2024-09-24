@@ -21,7 +21,7 @@ func TestNewLexer(t *testing.T) {
 	})
 }
 
-func TestLexer_advance(t *testing.T) {
+func TestBasicLexer_advance(t *testing.T) {
 	t.Run("Advance doesn't update position on empty string", func(t *testing.T) {
 		lexer := NewLexer("")
 		lexer.advance()
@@ -48,7 +48,7 @@ func TestLexer_advance(t *testing.T) {
 	})
 }
 
-func TestLexer_NextToken(t *testing.T) {
+func TestBasicLexer_NextToken(t *testing.T) {
 	t.Run("EOF expected", func(t *testing.T) {
 		lexer := NewLexer("")
 		token, err := lexer.NextToken()
@@ -62,7 +62,7 @@ func TestLexer_NextToken(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, INTEGER, token.TokenType)
 		require.Equal(t, 1, lexer.Position) 
-		require.Equal(t, 5, lexer.CurrentToken.TokenValue.(int))
+		require.Equal(t, 5, token.TokenValue.(int))
 	})
 
 	t.Run("Consecutive calls", func(t *testing.T) {
@@ -87,9 +87,10 @@ func TestLexer_NextToken(t *testing.T) {
 
 }
 
-func TestLexer_Eat(t *testing.T) {
+func TestBasicLexer_Eat(t *testing.T) {
 	t.Run("Empty string produces no error on EOF", func(t *testing.T) {
 		lexer := NewLexer("")
+		lexer.Initialize()
 		err := lexer.Eat(EOF)
 		require.NoError(t, err)
 		require.Equal(t, EOF, lexer.CurrentToken.TokenType)
@@ -97,8 +98,28 @@ func TestLexer_Eat(t *testing.T) {
 
 	t.Run("'5 + 3' returns no error on eating INTEGER", func(t *testing.T) {
 		lexer := NewLexer("5 + 3")
-		err := lexer.Eat(INTEGER)
+		err := lexer.Initialize()
+		require.NoError(t, err)
+
+		err = lexer.Eat(INTEGER)
+		require.NoError(t, err)
+	})
+}
+
+func TestBasicLexer_Initialize(t *testing.T) {
+	t.Run("'5 + 3' initialized on Number", func(t *testing.T) {
+		lexer := NewLexer("5 + 3")
+		require.Nil(t, lexer.CurrentToken)
+		err := lexer.Initialize()
 		require.NoError(t, err)
 		require.Equal(t, INTEGER, lexer.CurrentToken.TokenType)
+		require.Equal(t, 5, lexer.CurrentToken.TokenValue)
+	})
+
+	t.Run("Empty string produces EOF", func(t *testing.T) {
+		lexer := NewLexer("")
+		err := lexer.Initialize()
+		require.NoError(t, err)
+		require.Equal(t, EOF, lexer.CurrentToken.TokenType)
 	})
 }
