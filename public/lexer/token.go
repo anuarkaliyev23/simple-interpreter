@@ -7,6 +7,8 @@ const (
 	INTEGER TokenType = iota
 	MINUS
 	PLUS
+	MUL
+	DIV
 	EOF
 )
 

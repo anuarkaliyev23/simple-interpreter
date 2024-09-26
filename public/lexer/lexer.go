@@ -91,6 +91,14 @@ func (r *BasicLexer) NextToken() (BasicToken, error) {
 			token := BasicToken{TokenType: MINUS}
 			r.advance()
 			return token, nil
+		} else if r.currentRune() == '*' {
+			token := BasicToken {TokenType: MUL }
+			r.advance()
+			return token, nil
+		} else if r.currentRune() == '/' {
+			token := BasicToken { TokenType: DIV }
+			r.advance()
+			return token, nil
 		}
 
 	}

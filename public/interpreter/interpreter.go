@@ -8,6 +8,11 @@ type BasicInterpreter struct {
 	Lexer lexer.BasicLexer	
 }
 
+//factor integer
+func (r * BasicInterpreter) factor() (int, error) {
+	return r.term()
+}
+
 // For simplicity, term is an integer
 func (r *BasicInterpreter) term() (int, error) {
 	value := r.Lexer.GetCurrentToken().TokenValue
@@ -27,6 +32,7 @@ func (r *BasicInterpreter) isValidToken(token lexer.BasicToken, types ...lexer.T
 	return false
 }
 
+// factor((MUL | DIV) factor)* 
 func (r *BasicInterpreter) Expr() (any, error) {
 	err := r.Lexer.Initialize()
 	if err != nil {
@@ -65,6 +71,32 @@ func (r *BasicInterpreter) Expr() (any, error) {
 			}
 			result = result - term
 		}	
+
+		if op.TokenType == lexer.MUL {
+			err = r.Lexer.Eat(lexer.MUL)
+			if err != nil {
+				return nil, err
+			}
+
+			term, err := r.term()
+			if err != nil {
+				return nil, err
+			}
+			result = result * term
+		}
+
+		if op.TokenType == lexer.DIV {
+			err = r.Lexer.Eat(lexer.DIV)
+			if err != nil {
+				return nil, err
+			}
+
+			term, err := r.term()
+			if err != nil {
+				return nil, err
+			}
+			result = result / term
+		}
 	}
 	return result, nil
 }
