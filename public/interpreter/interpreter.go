@@ -1,8 +1,6 @@
 package interpreter
 
 import (
-	"fmt"
-
 	"github.com/anuarkaliyev23/simple-interpreter-go/public/lexer"
 )
 
@@ -10,6 +8,24 @@ type BasicInterpreter struct {
 	Lexer lexer.BasicLexer	
 }
 
+// For simplicity, term is an integer
+func (r *BasicInterpreter) term() (int, error) {
+	value := r.Lexer.GetCurrentToken().TokenValue
+	err := r.Lexer.Eat(lexer.INTEGER)
+	if err != nil {
+		return 0, err
+	}
+	return value.(int), nil
+}
+
+func (r *BasicInterpreter) isValidToken(token lexer.BasicToken, types ...lexer.TokenType) bool {
+	for _, t := range types {
+		if (token.TokenType == t) {
+			return true
+		}
+	}
+	return false
+}
 
 func (r *BasicInterpreter) Expr() (any, error) {
 	err := r.Lexer.Initialize()
@@ -17,45 +33,38 @@ func (r *BasicInterpreter) Expr() (any, error) {
 		return nil, err
 	}
 
-	left := r.Lexer.CurrentToken
-	err = r.Lexer.Eat(lexer.INTEGER)
+	result, err := r.term()
 	if err != nil {
 		return nil, err
 	}
+	
+	for r.isValidToken(*r.Lexer.CurrentToken, lexer.PLUS, lexer.MINUS) {
+		op := r.Lexer.CurrentToken
+		if op.TokenType == lexer.PLUS {
+			err = r.Lexer.Eat(lexer.PLUS)
+			if err != nil {
+				return nil, err
+			}
 
-	op := r.Lexer.CurrentToken
-	if op.TokenType == lexer.PLUS {
-		err = r.Lexer.Eat(lexer.PLUS)
-		if err != nil {
-			return nil, err
+			term, err := r.term()
+			if err != nil {
+				return nil, err
+			}
+			result = result + term
 		}
-	}
 
-	if op.TokenType == lexer.MINUS {
-		err = r.Lexer.Eat(lexer.MINUS)
-		if err != nil {
-			return nil, err
-		}
-	}
+		if op.TokenType == lexer.MINUS {
+			err = r.Lexer.Eat(lexer.MINUS)
+			if err != nil {
+				return nil, err
+			}
 
-	right := r.Lexer.CurrentToken
-	err = r.Lexer.Eat(lexer.INTEGER)
-
-	leftValue := left.TokenValue
-	if err != nil {
-		return nil, err
+			term, err := r.term()
+			if err != nil {
+				return nil, err
+			}
+			result = result - term
+		}	
 	}
-
-	rightValue := right.TokenValue
-	if err != nil {
-		return nil, err
-	}
-
-	if op.TokenType == lexer.PLUS {
-		return leftValue.(int) + rightValue.(int), nil
-	} else if op.TokenType == lexer.MINUS {
-		return leftValue.(int) - rightValue.(int), nil
-	} else {
-		return nil, fmt.Errorf("Operation is not permitted")
-	}
+	return result, nil
 }
