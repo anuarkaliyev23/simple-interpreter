@@ -10,17 +10,52 @@ type BasicInterpreter struct {
 
 //factor integer
 func (r * BasicInterpreter) factor() (int, error) {
-	return r.term()
-}
-
-// For simplicity, term is an integer
-func (r *BasicInterpreter) term() (int, error) {
-	value := r.Lexer.GetCurrentToken().TokenValue
+	token := r.Lexer.CurrentToken
 	err := r.Lexer.Eat(lexer.INTEGER)
 	if err != nil {
 		return 0, err
 	}
+	value := token.TokenValue
 	return value.(int), nil
+}
+
+// factor((MUL | DIV) factor)* 
+func (r *BasicInterpreter) term() (int, error) {
+	result, err := r.factor()
+	if err != nil {
+		return 0, err
+	}
+
+	for r.isValidToken(*r.Lexer.CurrentToken, lexer.MUL, lexer.DIV){
+		token := r.Lexer.CurrentToken
+		if token.TokenType == lexer.MUL {
+			err = r.Lexer.Eat(lexer.MUL)
+			if err != nil {
+				return 0, err
+			}
+
+			term, err := r.factor()
+			if err != nil {
+				return 0, err
+			}
+			result = result * term
+		}
+
+		if token.TokenType == lexer.DIV {
+			err = r.Lexer.Eat(lexer.DIV)
+			if err != nil {
+				return 0, err
+			}
+
+			term, err := r.factor()
+			if err != nil {
+				return 0, err
+			}
+			result = result / term
+		}
+	}
+	
+	return result, nil
 }
 
 func (r *BasicInterpreter) isValidToken(token lexer.BasicToken, types ...lexer.TokenType) bool {
@@ -32,7 +67,8 @@ func (r *BasicInterpreter) isValidToken(token lexer.BasicToken, types ...lexer.T
 	return false
 }
 
-// factor((MUL | DIV) factor)* 
+
+// term ((PLUS|MINUS) term)*
 func (r *BasicInterpreter) Expr() (any, error) {
 	err := r.Lexer.Initialize()
 	if err != nil {
@@ -71,32 +107,7 @@ func (r *BasicInterpreter) Expr() (any, error) {
 			}
 			result = result - term
 		}	
-
-		if op.TokenType == lexer.MUL {
-			err = r.Lexer.Eat(lexer.MUL)
-			if err != nil {
-				return nil, err
-			}
-
-			term, err := r.term()
-			if err != nil {
-				return nil, err
-			}
-			result = result * term
-		}
-
-		if op.TokenType == lexer.DIV {
-			err = r.Lexer.Eat(lexer.DIV)
-			if err != nil {
-				return nil, err
-			}
-
-			term, err := r.term()
-			if err != nil {
-				return nil, err
-			}
-			result = result / term
-		}
 	}
+
 	return result, nil
 }
