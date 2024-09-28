@@ -85,6 +85,25 @@ func TestBasicLexer_NextToken(t *testing.T) {
 		require.Equal(t, PLUS, token.TokenType)
 	})
 
+	t.Run("'(5 + 3)' parenthesis are handled", func(t *testing.T) {
+		lexer := NewLexer("(5 + 3)")
+		token, err := lexer.NextToken()
+		require.NoError(t, err)
+		require.Equal(t, token.TokenType, LPAREN)
+	})
+
+
+	t.Run("'5 + 3' RPAREN is handled", func(t *testing.T) {
+		lexer := NewLexer("()")
+		token, err := lexer.NextToken()
+		require.NoError(t, err)
+		require.Equal(t, token.TokenType, LPAREN)
+
+		token2, err := lexer.NextToken()
+		require.NoError(t, err)
+		require.Equal(t, token2.TokenType, RPAREN)
+	})
+
 }
 
 func TestBasicLexer_Eat(t *testing.T) {

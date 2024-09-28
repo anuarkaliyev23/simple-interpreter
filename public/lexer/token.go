@@ -9,6 +9,8 @@ const (
 	PLUS
 	MUL
 	DIV
+	LPAREN
+	RPAREN
 	EOF
 )
 

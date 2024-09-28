@@ -1,4 +1,4 @@
-package lexer 
+package lexer
 
 import (
 	"fmt"
@@ -69,6 +69,14 @@ func (r *BasicLexer) skipWhitespace() {
 	}
 }
 
+func (r *BasicLexer) handleNoValueToken(symbol rune, token BasicToken) (BasicToken, error) {
+	if r.currentRune() == symbol {
+		r.advance()
+		return token, nil
+	}
+	return BasicToken{}, fmt.Errorf("Got rune %v, expected %v", r.currentRune(), symbol)
+}
+
 func (r *BasicLexer) NextToken() (BasicToken, error) {
 	for !r.IsReachedEOF {
 		if r.isOnSpace() {
@@ -99,6 +107,10 @@ func (r *BasicLexer) NextToken() (BasicToken, error) {
 			token := BasicToken { TokenType: DIV }
 			r.advance()
 			return token, nil
+		} else if r.currentRune() == '(' {
+			return r.handleNoValueToken('(', BasicToken{TokenType: LPAREN})
+		} else if r.currentRune() == ')' {
+			return r.handleNoValueToken(')', BasicToken{TokenType: RPAREN})
 		}
 
 	}

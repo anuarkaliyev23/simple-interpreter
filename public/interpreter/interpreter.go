@@ -1,6 +1,8 @@
 package interpreter
 
 import (
+	"fmt"
+
 	"github.com/anuarkaliyev23/simple-interpreter-go/public/lexer"
 )
 
@@ -8,15 +10,32 @@ type BasicInterpreter struct {
 	Lexer lexer.BasicLexer	
 }
 
-//factor integer
-func (r * BasicInterpreter) factor() (int, error) {
+//factor integer | LPAREN expr RPAREN
+func (r * BasicInterpreter) factor() (any, error) {
 	token := r.Lexer.CurrentToken
-	err := r.Lexer.Eat(lexer.INTEGER)
-	if err != nil {
-		return 0, err
+
+	if token.TokenType == lexer.INTEGER {
+		err := r.Lexer.Eat(lexer.INTEGER)
+		if err != nil {
+			return 0, err
+		}
+		value := token.TokenValue
+		return value.(int), nil
+	} else if token.TokenType == lexer.LPAREN {
+		if err := r.Lexer.Eat(lexer.LPAREN); err != nil {
+			return nil, err
+		}
+
+		result, err := r.Expr()
+		if err != nil {
+			return nil, err
+		}
+		if err := r.Lexer.Eat(lexer.RPAREN); err != nil {
+			return nil, err
+		}
+		return result, err
 	}
-	value := token.TokenValue
-	return value.(int), nil
+	return nil, fmt.Errorf("Could not read factor")
 }
 
 // factor((MUL | DIV) factor)* 
@@ -38,7 +57,7 @@ func (r *BasicInterpreter) term() (int, error) {
 			if err != nil {
 				return 0, err
 			}
-			result = result * term
+			result = result.(int) * term.(int)
 		}
 
 		if token.TokenType == lexer.DIV {
@@ -51,11 +70,11 @@ func (r *BasicInterpreter) term() (int, error) {
 			if err != nil {
 				return 0, err
 			}
-			result = result / term
+			result = result.(int) / term.(int)
 		}
 	}
 	
-	return result, nil
+	return result.(int), nil
 }
 
 func (r *BasicInterpreter) isValidToken(token lexer.BasicToken, types ...lexer.TokenType) bool {
@@ -70,11 +89,6 @@ func (r *BasicInterpreter) isValidToken(token lexer.BasicToken, types ...lexer.T
 
 // term ((PLUS|MINUS) term)*
 func (r *BasicInterpreter) Expr() (any, error) {
-	err := r.Lexer.Initialize()
-	if err != nil {
-		return nil, err
-	}
-
 	result, err := r.term()
 	if err != nil {
 		return nil, err
@@ -110,4 +124,16 @@ func (r *BasicInterpreter) Expr() (any, error) {
 	}
 
 	return result, nil
+}
+
+func NewInterpreter(lexer lexer.BasicLexer) (*BasicInterpreter, error) {
+	interpreter := BasicInterpreter {
+		Lexer: lexer,
+	}
+
+	if err := interpreter.Lexer.Initialize(); err != nil {
+		return nil, err
+	}
+
+	return &interpreter, nil
 }

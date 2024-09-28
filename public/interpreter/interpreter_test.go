@@ -11,9 +11,8 @@ import (
 func TestBasicInterpreter_Expr(t *testing.T) {
 	t.Run("5 + 3 = 8", func(t *testing.T) {
 		lexer := lexer.NewLexer("5 + 3")
-		interpreter := BasicInterpreter{
-			Lexer: lexer,
-		}
+		interpreter, err := NewInterpreter(lexer)
+		require.NoError(t, err)
 
 		result, err := interpreter.Expr()
 		require.NoError(t, err)
@@ -22,9 +21,8 @@ func TestBasicInterpreter_Expr(t *testing.T) {
 
 	t.Run("5 + 3 + 10 = 18", func(t *testing.T) {
 		lexer := lexer.NewLexer("5 + 3 + 10")
-		interpreter := BasicInterpreter{
-			Lexer: lexer,
-		}
+		interpreter, err := NewInterpreter(lexer)
+		require.NoError(t, err)
 
 		result, err := interpreter.Expr()
 		require.NoError(t, err)
@@ -34,12 +32,22 @@ func TestBasicInterpreter_Expr(t *testing.T) {
 
 	t.Run("5 * 3 + 10 = 25", func(t *testing.T) {
 		lexer := lexer.NewLexer("5 * 3 + 10")
-		interpreter := BasicInterpreter{
-			Lexer: lexer,
-		}
+		interpreter, err := NewInterpreter(lexer)
+		require.NoError(t, err)
 
 		result, err := interpreter.Expr()
 		require.NoError(t, err)
 		require.Equal(t, 25, result)
+	})
+
+
+	t.Run("(5 + 3) * 2 = 16", func(t *testing.T) {
+		lexer := lexer.NewLexer("(5 + 3) * 2")
+		interpreter, err := NewInterpreter(lexer)
+		require.NoError(t, err)
+
+		result, err := interpreter.Expr()
+		require.NoError(t, err)
+		require.Equal(t, 16, result)
 	})
 }
