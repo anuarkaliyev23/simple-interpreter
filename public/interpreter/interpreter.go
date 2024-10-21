@@ -7,6 +7,10 @@ import (
 	"github.com/anuarkaliyev23/simple-interpreter-go/public/lexer"
 )
 
+type NodeVisitor interface {
+	Visit(node ast.Node) int
+}
+
 type Lexer interface {
 	Initialize() (error)
 	NextToken() (lexer.BasicToken, error)
@@ -16,6 +20,7 @@ type Lexer interface {
 
 type BasicInterpreter struct {
 	Lexer Lexer	
+	Visitor NodeVisitor
 }
 
 //factor integer | LPAREN expr RPAREN
@@ -28,7 +33,7 @@ func (r *BasicInterpreter) factor() (ast.Node, error) {
 			return nil, err
 		}
 		value := token.TokenValue
-		return ast.NewValueNode(*token, value), nil
+		return ast.NewIntNode(*token, value.(int)), nil
 	} else if token.TokenType == lexer.LPAREN {
 		if err := r.Lexer.Eat(lexer.LPAREN); err != nil {
 			return nil, err
@@ -121,20 +126,14 @@ func (r *BasicInterpreter) Expr() (ast.Node, error) {
 	return node, nil
 }
 
-// func (r BasicInterpreter) Visit(node ast.Node) (any, error) {
-// 	valueNode, ok := node.(ast.ValueNode[any])
-// 	if ok {
-// 		return valueNode.GetValue(), nil
-// 	}
-//
-// 	binNode, ok := node.(ast.BinaryNode) {
-//
-// 	}
-// }
+func (r BasicInterpreter) Visit(node ast.Node) int {
+	return r.Visitor.Visit(node)
+}
 
 func NewInterpreter(lexer lexer.BasicLexer) (*BasicInterpreter, error) {
 	interpreter := BasicInterpreter {
 		Lexer: &lexer,
+		Visitor: AstNodeExprVisitor{},
 	}
 
 	if err := interpreter.Lexer.Initialize(); err != nil {

@@ -20,23 +20,24 @@ func (r BasicNode) GetToken() lexer.BasicToken {
 	return r.token
 }
 
-type ValueNode[T any] struct {
+type IntNode struct {
 	BasicNode
-	value T
+	value int
 }
 
-func (r ValueNode[T]) GetValue() any {
+func (r IntNode) GetValue() int {
 	return r.value
 }
 
-func NewValueNode[T any](t lexer.BasicToken, value T) ValueNode[T] {
-	return ValueNode[T]{
+func NewIntNode(t lexer.BasicToken, value int) IntNode {
+	return IntNode{
 		value: value,
 		BasicNode: BasicNode{
 			token: t,
 		},
 	}
 }
+
 
 type BinaryOperation struct {
 	BasicNode
