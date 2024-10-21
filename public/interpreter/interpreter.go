@@ -3,24 +3,32 @@ package interpreter
 import (
 	"fmt"
 
+	"github.com/anuarkaliyev23/simple-interpreter-go/public/ast"
 	"github.com/anuarkaliyev23/simple-interpreter-go/public/lexer"
 )
 
+type Lexer interface {
+	Initialize() (error)
+	NextToken() (lexer.BasicToken, error)
+	Eat(lexer.TokenType) (error)
+	GetCurrentToken() *lexer.BasicToken
+}
+
 type BasicInterpreter struct {
-	Lexer lexer.BasicLexer	
+	Lexer Lexer	
 }
 
 //factor integer | LPAREN expr RPAREN
-func (r * BasicInterpreter) factor() (any, error) {
-	token := r.Lexer.CurrentToken
+func (r *BasicInterpreter) factor() (ast.Node, error) {
+	token := r.Lexer.GetCurrentToken()
 
 	if token.TokenType == lexer.INTEGER {
 		err := r.Lexer.Eat(lexer.INTEGER)
 		if err != nil {
-			return 0, err
+			return nil, err
 		}
 		value := token.TokenValue
-		return value.(int), nil
+		return ast.NewValueNode(*token, value), nil
 	} else if token.TokenType == lexer.LPAREN {
 		if err := r.Lexer.Eat(lexer.LPAREN); err != nil {
 			return nil, err
@@ -39,42 +47,36 @@ func (r * BasicInterpreter) factor() (any, error) {
 }
 
 // factor((MUL | DIV) factor)* 
-func (r *BasicInterpreter) term() (int, error) {
-	result, err := r.factor()
+func (r *BasicInterpreter) term() (ast.Node, error) {
+	node, err := r.factor()
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
-	for r.isValidToken(*r.Lexer.CurrentToken, lexer.MUL, lexer.DIV){
-		token := r.Lexer.CurrentToken
+	for r.isValidToken(*r.Lexer.GetCurrentToken(), lexer.MUL, lexer.DIV){
+		token := r.Lexer.GetCurrentToken()
+
 		if token.TokenType == lexer.MUL {
 			err = r.Lexer.Eat(lexer.MUL)
 			if err != nil {
-				return 0, err
+				return nil, err
 			}
-
-			term, err := r.factor()
-			if err != nil {
-				return 0, err
-			}
-			result = result.(int) * term.(int)
-		}
-
-		if token.TokenType == lexer.DIV {
+		} else if token.TokenType == lexer.DIV {
 			err = r.Lexer.Eat(lexer.DIV)
 			if err != nil {
-				return 0, err
+				return nil, err
 			}
-
-			term, err := r.factor()
-			if err != nil {
-				return 0, err
-			}
-			result = result.(int) / term.(int)
 		}
+
+		right, err := r.factor()
+		if err != nil {
+			return nil, err
+		}
+
+		node = ast.NewBinaryOperation(node, right, *token)
 	}
 	
-	return result.(int), nil
+	return node, nil
 }
 
 func (r *BasicInterpreter) isValidToken(token lexer.BasicToken, types ...lexer.TokenType) bool {
@@ -88,47 +90,51 @@ func (r *BasicInterpreter) isValidToken(token lexer.BasicToken, types ...lexer.T
 
 
 // term ((PLUS|MINUS) term)*
-func (r *BasicInterpreter) Expr() (any, error) {
-	result, err := r.term()
+func (r *BasicInterpreter) Expr() (ast.Node, error) {
+	node , err := r.term()
 	if err != nil {
 		return nil, err
 	}
 	
-	for r.isValidToken(*r.Lexer.CurrentToken, lexer.PLUS, lexer.MINUS) {
-		op := r.Lexer.CurrentToken
-		if op.TokenType == lexer.PLUS {
+	for r.isValidToken(*r.Lexer.GetCurrentToken(), lexer.PLUS, lexer.MINUS) {
+		token := r.Lexer.GetCurrentToken()
+		if token.TokenType == lexer.PLUS {
 			err = r.Lexer.Eat(lexer.PLUS)
 			if err != nil {
 				return nil, err
 			}
-
-			term, err := r.term()
-			if err != nil {
-				return nil, err
-			}
-			result = result + term
-		}
-
-		if op.TokenType == lexer.MINUS {
+		} else if token.TokenType == lexer.MINUS {
 			err = r.Lexer.Eat(lexer.MINUS)
 			if err != nil {
 				return nil, err
 			}
+		}
+	
+		right, err := r.term()
+		if err != nil {
+			return nil, err
+		}
 
-			term, err := r.term()
-			if err != nil {
-				return nil, err
-			}
-			result = result - term
-		}	
+		node = ast.NewBinaryOperation(node, right, *token)
 	}
 
-	return result, nil
+	return node, nil
 }
+
+// func (r BasicInterpreter) Visit(node ast.Node) (any, error) {
+// 	valueNode, ok := node.(ast.ValueNode[any])
+// 	if ok {
+// 		return valueNode.GetValue(), nil
+// 	}
+//
+// 	binNode, ok := node.(ast.BinaryNode) {
+//
+// 	}
+// }
 
 func NewInterpreter(lexer lexer.BasicLexer) (*BasicInterpreter, error) {
 	interpreter := BasicInterpreter {
-		Lexer: lexer,
+		Lexer: &lexer,
 	}
 
 	if err := interpreter.Lexer.Initialize(); err != nil {
