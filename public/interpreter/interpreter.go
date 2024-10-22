@@ -25,11 +25,35 @@ type BasicInterpreter struct {
 
 const ErrorCode int = 1
 
-//factor integer | LPAREN expr RPAREN
+//factor (PLUS|MINUS) integer | LPAREN expr RPAREN
 func (r *BasicInterpreter) factor() (ast.Node, error) {
 	token := r.Lexer.GetCurrentToken()
+	
+	if token.TokenType == lexer.PLUS {
+		err := r.Lexer.Eat(lexer.PLUS)
+		if err != nil {
+			return nil, err
+		}
 
-	if token.TokenType == lexer.INTEGER {
+		right, err := r.factor()
+		if err != nil {
+			return nil, err
+		}
+
+		return ast.NewUnaryOperation(right, *token), nil
+	} else if token.TokenType == lexer.MINUS {
+		err := r.Lexer.Eat(lexer.MINUS)
+		if err != nil {
+			return nil, err
+		}
+
+		right, err := r.factor()
+		if err != nil {
+			return nil, err
+		}
+
+		return ast.NewUnaryOperation(right, *token), nil
+	} else if token.TokenType == lexer.INTEGER {
 		err := r.Lexer.Eat(lexer.INTEGER)
 		if err != nil {
 			return nil, err

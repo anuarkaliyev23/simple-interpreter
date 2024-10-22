@@ -62,3 +62,21 @@ func NewBinaryOperation(left Node, right Node, operation lexer.BasicToken,) Bina
 		right: right,
 	}
 }
+
+type UnaryOperation struct {
+	BasicNode
+	right Node
+}
+
+func (r UnaryOperation) GetRight() Node {
+	return r.right
+}
+
+func NewUnaryOperation(right Node, operation lexer.BasicToken) UnaryOperation {
+	return UnaryOperation{
+		BasicNode: BasicNode{
+			token: operation,
+		},
+		right: right,
+	}
+}
