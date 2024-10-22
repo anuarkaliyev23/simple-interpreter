@@ -25,7 +25,7 @@ type BasicInterpreter struct {
 
 const ErrorCode int = 1
 
-//factor (PLUS|MINUS) integer | LPAREN expr RPAREN
+//factor (PLUS|MINUS) integer | LPAREN expr RPAREN | variable
 func (r *BasicInterpreter) factor() (ast.Node, error) {
 	token := r.Lexer.GetCurrentToken()
 	
@@ -152,8 +152,119 @@ func (r *BasicInterpreter) Expr() (ast.Node, error) {
 	return node, nil
 }
 
+func (r *BasicInterpreter) empty() (ast.Node) {
+	return ast.NewNoOp()
+}
 
-func (r BasicInterpreter) Interpret() (int, error) {
+// var: ID
+func (r *BasicInterpreter) variable() (ast.Node) {
+	token := r.Lexer.GetCurrentToken()
+	node := ast.NewVar(token.TokenValue.(string), *token)
+	return node
+}
+
+// assignment: variable ASSIGN expr
+func (r *BasicInterpreter) assignment() (ast.Node, error) {
+	left := r.variable()
+	token := r.Lexer.GetCurrentToken()
+	r.Lexer.Eat(lexer.ASSIGN)
+	right, err := r.Expr()
+	if err != nil {
+		return nil, err
+	}
+	node := ast.NewAssignt(left, right, *token)
+	return node, nil
+}
+
+// statementList: statement | statement SEMI statementList
+func (r *BasicInterpreter) statementList() ([]ast.Node, error) {
+	node, err := r.statement()
+	if err != nil {
+		return nil, err 
+	}
+
+	var results []ast.Node
+	results = append(results, node)
+
+	for r.Lexer.GetCurrentToken().TokenType == lexer.SEMICOLON {
+		r.Lexer.Eat(lexer.SEMICOLON)
+		statement, err := r.statement()
+		if err != nil {
+			return nil, err
+		}
+		results = append(results, statement)
+	}
+
+	if r.Lexer.GetCurrentToken().TokenType == lexer.ID {
+		return nil, fmt.Errorf("Cannot parse variables")
+	}
+
+	return results, nil
+}
+
+
+// compound: BEGIN statementList END
+func (r *BasicInterpreter) compound() (ast.Node, error) {
+	r.Lexer.Eat(lexer.BEGIN)
+	nodes, err := r.statementList()
+	if err != nil {
+		return nil, err
+	}
+
+	r.Lexer.Eat(lexer.END)
+
+	token := r.Lexer.GetCurrentToken()
+	compound := ast.NewCompound(nodes, *token)
+	return compound, nil
+}
+
+// statement: compound | assignment | empty
+func (r *BasicInterpreter) statement() (ast.Node, error) {
+	currentToken := r.Lexer.GetCurrentToken()
+	var result ast.Node
+
+	if currentToken.TokenType == lexer.BEGIN {
+		node, err := r.compound()
+		if err != nil {
+			return nil, err
+		}
+		result = node
+	} else if currentToken.TokenType == lexer.ID {
+		node, err := r.assignment()
+		if err != nil {
+			return nil, err
+		}
+		result = node
+	} else {
+		node := r.empty()
+		result = node
+	}
+
+	return result, nil 
+}
+
+//program: compound DOT
+func (r *BasicInterpreter) program() (ast.Node, error) {
+	node, err := r.compound()
+	if err != nil {
+		return nil, err
+	}
+	r.Lexer.Eat(lexer.DOT)
+	return node, nil
+}
+
+func (r *BasicInterpreter) parse() (ast.Node, error) {
+	node, err := r.program()
+	if err != nil {
+		return nil, err
+	}
+	if r.Lexer.GetCurrentToken().TokenType != lexer.EOF {
+		return nil, fmt.Errorf("EOF expected, got %v instead", r.Lexer.GetCurrentToken())
+	}
+	return node, nil
+}
+
+func (r *BasicInterpreter) Interpret() (int, error) {
 	astTree, err := r.Expr()
 	if err != nil {
 		return ErrorCode, err
@@ -168,9 +279,10 @@ func (r BasicInterpreter) Interpret() (int, error) {
 }
 
 func NewInterpreter(lexer lexer.BasicLexer) (*BasicInterpreter, error) {
+	evaluator := NewEvaluatorVisitor()
 	interpreter := BasicInterpreter {
 		Lexer: &lexer,
-		Visitor: AstNodeEvalVisitor{},
+		Visitor: &evaluator,
 	}
 
 	if err := interpreter.Lexer.Initialize(); err != nil {

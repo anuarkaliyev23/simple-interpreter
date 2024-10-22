@@ -77,12 +77,36 @@ func (r *BasicLexer) handleNoValueToken(symbol rune, token BasicToken) (BasicTok
 	return BasicToken{}, fmt.Errorf("Got rune %v, expected %v", r.currentRune(), symbol)
 }
 
+func (r *BasicLexer) peek() *byte {
+	peekPosition := r.Position + 1
+	if peekPosition > len(r.Text) - 1 {
+		return nil
+	} else {
+		c := r.Text[peekPosition]
+		return &c
+	}
+}
+
+func (r *BasicLexer) identifier() BasicToken {
+	result := ""
+	for !r.IsReachedEOF && (unicode.IsLetter(r.currentRune()) || unicode.IsDigit(r.currentRune())) {
+		result += string(*r.currentChar())
+		r.advance()
+	}
+
+	reserved := ReservedKeywords[result]
+	return reserved
+}
+
 func (r *BasicLexer) NextToken() (BasicToken, error) {
 	for !r.IsReachedEOF {
 		if r.isOnSpace() {
 			r.skipWhitespace()
 			continue
 		}
+
+		currentRune := r.currentRune()
+		peekRune := rune(*r.peek())
 
 		if r.isOnDigit() {
 			result, err := r.parseInteger()
@@ -91,26 +115,39 @@ func (r *BasicLexer) NextToken() (BasicToken, error) {
 			}
 			token := BasicToken{TokenType: INTEGER, TokenValue: result}
 			return token,  nil
-		} else if r.currentRune() == '+' {
+		} else if currentRune == '+' {
 			token := BasicToken{TokenType: PLUS}
 			r.advance()
 			return token, nil
-		} else if r.currentRune() == '-' {
+		} else if currentRune == '-' {
 			token := BasicToken{TokenType: MINUS}
 			r.advance()
 			return token, nil
-		} else if r.currentRune() == '*' {
+		} else if currentRune == '*' {
 			token := BasicToken {TokenType: MUL }
 			r.advance()
 			return token, nil
-		} else if r.currentRune() == '/' {
+		} else if currentRune == '/' {
 			token := BasicToken { TokenType: DIV }
 			r.advance()
 			return token, nil
-		} else if r.currentRune() == '(' {
+		} else if currentRune == '(' {
 			return r.handleNoValueToken('(', BasicToken{TokenType: LPAREN})
-		} else if r.currentRune() == ')' {
+		} else if currentRune == ')' {
 			return r.handleNoValueToken(')', BasicToken{TokenType: RPAREN})
+		} else if currentRune == ':' && peekRune == '=' {
+			r.advance()
+			r.advance()
+			token := BasicToken {TokenType: ASSIGN}
+			return token, nil
+		} else if currentRune == ';' {
+			r.advance()
+			token := BasicToken {TokenType: SEMICOLON}
+			return token, nil
+		} else if currentRune == '.' {
+			r.advance()
+			token := BasicToken{TokenType: DOT}
+			return token, nil
 		}
 
 	}

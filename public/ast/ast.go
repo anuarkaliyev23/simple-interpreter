@@ -38,10 +38,9 @@ func NewIntNode(t lexer.BasicToken, value int) IntNode {
 	}
 }
 
-
 type BinaryOperation struct {
 	BasicNode
-	left Node
+	left  Node
 	right Node
 }
 
@@ -53,12 +52,12 @@ func (r BinaryOperation) GetRight() Node {
 	return r.right
 }
 
-func NewBinaryOperation(left Node, right Node, operation lexer.BasicToken,) BinaryOperation {
+func NewBinaryOperation(left Node, right Node, operation lexer.BasicToken) BinaryOperation {
 	return BinaryOperation{
 		BasicNode: BasicNode{
 			token: operation,
 		},
-		left: left,
+		left:  left,
 		right: right,
 	}
 }
@@ -78,5 +77,65 @@ func NewUnaryOperation(right Node, operation lexer.BasicToken) UnaryOperation {
 			token: operation,
 		},
 		right: right,
+	}
+}
+
+type AssignOperation struct {
+	BinaryOperation
+}
+
+func NewAssignt(left Node, right Node, operation lexer.BasicToken) AssignOperation {
+	return AssignOperation{
+		BinaryOperation: NewBinaryOperation(left, right, operation),
+	}
+}
+
+type Var struct {
+	BasicNode
+	value string
+}
+
+func (r Var) GetValue() string {
+	return r.value
+}
+
+func NewVar(name string, token lexer.BasicToken) Var {
+	return Var{
+		BasicNode: BasicNode{
+			token: token,
+		},
+		value: name,
+	}
+}
+
+type Compound struct {
+	BasicNode
+	children []Node
+}
+
+func (r Compound) GetChildren() []Node {
+	return r.children
+}
+
+func NewCompound(children []Node, token lexer.BasicToken) Compound {
+	return Compound{
+		BasicNode: BasicNode{
+			token: token,
+		},
+		children: children,
+	}
+}
+
+type NoOp struct {
+	BasicNode
+}
+
+func NewNoOp() NoOp {
+	return NoOp{
+		BasicNode: BasicNode{
+			token: lexer.BasicToken{
+				TokenType: lexer.SEMICOLON,
+			},
+		},
 	}
 }

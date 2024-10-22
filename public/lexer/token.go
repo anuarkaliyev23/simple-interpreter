@@ -11,6 +11,12 @@ const (
 	DIV
 	LPAREN
 	RPAREN
+	BEGIN
+	END
+	DOT
+	ASSIGN
+	SEMICOLON
+	ID
 	EOF
 )
 
