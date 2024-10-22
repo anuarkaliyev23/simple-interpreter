@@ -23,6 +23,8 @@ type BasicInterpreter struct {
 	Visitor NodeVisitor
 }
 
+const ErrorCode int = 1
+
 //factor integer | LPAREN expr RPAREN
 func (r *BasicInterpreter) factor() (ast.Node, error) {
 	token := r.Lexer.GetCurrentToken()
@@ -126,14 +128,24 @@ func (r *BasicInterpreter) Expr() (ast.Node, error) {
 	return node, nil
 }
 
-func (r BasicInterpreter) Visit(node ast.Node) int {
+func (r BasicInterpreter) visit(node ast.Node) int {
 	return r.Visitor.Visit(node)
+}
+
+func (r BasicInterpreter) Interpret() (int, error) {
+	astTree, err := r.Expr()
+	if err != nil {
+		return ErrorCode, err
+	}
+
+	result := r.Visitor.Visit(astTree)
+	return result, nil
 }
 
 func NewInterpreter(lexer lexer.BasicLexer) (*BasicInterpreter, error) {
 	interpreter := BasicInterpreter {
 		Lexer: &lexer,
-		Visitor: AstNodeExprVisitor{},
+		Visitor: AstNodeEvalVisitor{},
 	}
 
 	if err := interpreter.Lexer.Initialize(); err != nil {

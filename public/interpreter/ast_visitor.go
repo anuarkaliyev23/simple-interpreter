@@ -5,11 +5,11 @@ import (
 	"github.com/anuarkaliyev23/simple-interpreter-go/public/lexer"
 )
 
-type AstNodeExprVisitor struct {
+type AstNodeEvalVisitor struct {
 
 }
 
-func (r AstNodeExprVisitor) visitOperationNode(node ast.BinaryOperation) int {
+func (r AstNodeEvalVisitor) visitOperationNode(node ast.BinaryOperation) int {
 	if node.GetToken().TokenType == lexer.MINUS {
 		return r.Visit(node.GetLeft()) - r.Visit(node.GetRight())
 	} else if node.GetToken().TokenType == lexer.PLUS {
@@ -24,11 +24,11 @@ func (r AstNodeExprVisitor) visitOperationNode(node ast.BinaryOperation) int {
 }
 
 
-func (r AstNodeExprVisitor) visitIntNode(node ast.IntNode) int {
+func (r AstNodeEvalVisitor) visitIntNode(node ast.IntNode) int {
 	return node.GetValue()
 }
 
-func (r AstNodeExprVisitor) Visit(node ast.Node) int {
+func (r AstNodeEvalVisitor) Visit(node ast.Node) int {
 	castedOpNode, ok := node.(ast.BinaryOperation)
 	if ok {
 		return r.visitOperationNode(castedOpNode)

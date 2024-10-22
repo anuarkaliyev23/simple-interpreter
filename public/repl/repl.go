@@ -10,7 +10,7 @@ import (
 )
 
 type Interpreter interface {
-	Expr() (any, error)
+	Interpret() (int, error)
 }
 
 type Repl struct {
@@ -25,10 +25,13 @@ func (r Repl) Iter() error {
 		return err
 	}
 	lexer := lexer.NewLexer(text)
-	interpreter := interpreter.BasicInterpreter{
-		Lexer: lexer,
+
+	interpreter, err := interpreter.NewInterpreter(lexer)
+	if err != nil {
+		return err
 	}
-	result, err := interpreter.Expr()
+
+	result, err := interpreter.Interpret()
 	if err != nil {
 		return err
 	}
