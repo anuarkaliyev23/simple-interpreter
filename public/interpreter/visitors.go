@@ -7,11 +7,11 @@ import (
 	"github.com/anuarkaliyev23/simple-interpreter-go/public/lexer"
 )
 
-type AstNodeEvalVisitor struct {
+type EvaluatorVisitor struct {
 
 }
 
-func (r AstNodeEvalVisitor) visitOperationNode(node ast.BinaryOperation) (int, error) {
+func (r EvaluatorVisitor) visitOperationNode(node ast.BinaryOperation) (int, error) {
 	operation := node.GetToken().TokenType
 
 	left, err := r.Visit(node.GetLeft())
@@ -39,7 +39,7 @@ func (r AstNodeEvalVisitor) visitOperationNode(node ast.BinaryOperation) (int, e
 }
 
 
-func (r AstNodeEvalVisitor) visitUnaryNode(node ast.UnaryOperation) (int, error) {
+func (r EvaluatorVisitor) visitUnaryNode(node ast.UnaryOperation) (int, error) {
 	operation := node.GetToken().TokenType
 
 	right, err := r.Visit(node.GetRight())
@@ -56,11 +56,11 @@ func (r AstNodeEvalVisitor) visitUnaryNode(node ast.UnaryOperation) (int, error)
 	return 0, fmt.Errorf("Cannot evaluate UnaryOperation node %v", node)
 }
 
-func (r AstNodeEvalVisitor) visitIntNode(node ast.IntNode) (int, error) {
+func (r EvaluatorVisitor) visitIntNode(node ast.IntNode) (int, error) {
 	return node.GetValue(), nil
 }
 
-func (r AstNodeEvalVisitor) Visit(node ast.Node) (int, error) {
+func (r EvaluatorVisitor) Visit(node ast.Node) (int, error) {
 	castedOpNode, ok := node.(ast.BinaryOperation)
 	if ok {
 		return r.visitOperationNode(castedOpNode)
