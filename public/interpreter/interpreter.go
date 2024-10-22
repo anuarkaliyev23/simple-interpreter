@@ -8,7 +8,7 @@ import (
 )
 
 type NodeVisitor interface {
-	Visit(node ast.Node) int
+	Visit(node ast.Node) (int, error)
 }
 
 type Lexer interface {
@@ -152,9 +152,6 @@ func (r *BasicInterpreter) Expr() (ast.Node, error) {
 	return node, nil
 }
 
-func (r BasicInterpreter) visit(node ast.Node) int {
-	return r.Visitor.Visit(node)
-}
 
 func (r BasicInterpreter) Interpret() (int, error) {
 	astTree, err := r.Expr()
@@ -162,7 +159,11 @@ func (r BasicInterpreter) Interpret() (int, error) {
 		return ErrorCode, err
 	}
 
-	result := r.Visitor.Visit(astTree)
+	result, err := r.Visitor.Visit(astTree)
+	if err != nil {
+		return ErrorCode, err
+	}
+
 	return result, nil
 }
 

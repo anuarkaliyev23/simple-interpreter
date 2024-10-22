@@ -1,6 +1,8 @@
 package interpreter
 
 import (
+	"fmt"
+
 	"github.com/anuarkaliyev23/simple-interpreter-go/public/ast"
 	"github.com/anuarkaliyev23/simple-interpreter-go/public/lexer"
 )
@@ -9,26 +11,56 @@ type AstNodeEvalVisitor struct {
 
 }
 
-func (r AstNodeEvalVisitor) visitOperationNode(node ast.BinaryOperation) int {
-	if node.GetToken().TokenType == lexer.MINUS {
-		return r.Visit(node.GetLeft()) - r.Visit(node.GetRight())
-	} else if node.GetToken().TokenType == lexer.PLUS {
-		return r.Visit(node.GetLeft()) + r.Visit(node.GetRight())
-	} else if node.GetToken().TokenType == lexer.MUL {
-		return r.Visit(node.GetLeft()) * r.Visit(node.GetRight())
-	} else if node.GetToken().TokenType == lexer.DIV {
-		return r.Visit(node.GetLeft()) * r.Visit(node.GetRight())
+func (r AstNodeEvalVisitor) visitOperationNode(node ast.BinaryOperation) (int, error) {
+	operation := node.GetToken().TokenType
+
+	left, err := r.Visit(node.GetLeft())
+	if err != nil {
+		return 0, err
 	}
 
-	panic("Unknown operation")
+	right, err := r.Visit(node.GetRight())
+	if err != nil {
+		return 0, err
+	}
+
+	if operation == lexer.MINUS {
+
+		return left - right, nil
+	} else if operation == lexer.PLUS {
+		return left + right, nil
+	} else if operation == lexer.MUL {
+		return left * right, nil
+	} else if operation == lexer.DIV {
+		return left / right, nil
+	}
+	
+	return 0, fmt.Errorf("Cannot evaluate BinaryOperation node %v", node)
 }
 
 
-func (r AstNodeEvalVisitor) visitIntNode(node ast.IntNode) int {
-	return node.GetValue()
+func (r AstNodeEvalVisitor) visitUnaryNode(node ast.UnaryOperation) (int, error) {
+	operation := node.GetToken().TokenType
+
+	right, err := r.Visit(node.GetRight())
+	if err != nil {
+		return 0, err
+	}
+
+	if operation == lexer.PLUS {
+		return +right, nil
+	} else if operation == lexer.MINUS {
+		return -right, nil
+	}
+
+	return 0, fmt.Errorf("Cannot evaluate UnaryOperation node %v", node)
 }
 
-func (r AstNodeEvalVisitor) Visit(node ast.Node) int {
+func (r AstNodeEvalVisitor) visitIntNode(node ast.IntNode) (int, error) {
+	return node.GetValue(), nil
+}
+
+func (r AstNodeEvalVisitor) Visit(node ast.Node) (int, error) {
 	castedOpNode, ok := node.(ast.BinaryOperation)
 	if ok {
 		return r.visitOperationNode(castedOpNode)
@@ -38,6 +70,11 @@ func (r AstNodeEvalVisitor) Visit(node ast.Node) int {
 	if ok {
 		return r.visitIntNode(castedIntNode)
 	}
-	
-	panic("Cannot cast node to any known type")
+
+	castedUnaryNode, ok := node.(ast.UnaryOperation)
+	if ok {
+		return r.visitUnaryNode(castedUnaryNode)
+	}
+
+	return 0, fmt.Errorf("Cannot evaluate node of unknown type %v", node)
 }

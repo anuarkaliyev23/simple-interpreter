@@ -73,13 +73,10 @@ func TestBasicInterpreter_Expr(t *testing.T) {
 			), node.(ast.BinaryOperation).GetRight())
 		})
 
-
-
 		t.Run("+5 + -3", func(t *testing.T) {
 			parser := lexer.NewLexer("+5 + -3")
 			interpreter, err := NewInterpreter(parser)
 			require.NoError(t, err)
-
 
 			node, err := interpreter.Expr()
 			require.NoError(t, err)
@@ -181,43 +178,71 @@ func TestBasicInterpreter_Expr(t *testing.T) {
 }
 
 func TestBasicInterpreter_Interpret(t *testing.T) {
-	t.Run("5 + 3 = 8", func(t *testing.T) {
-		parser := lexer.NewLexer("5 + 3")
-		interpreter, err := NewInterpreter(parser)
-		require.NoError(t, err)
 
-		result, err := interpreter.Interpret()
-		require.NoError(t, err)
-		require.Equal(t, 8, result)
-	})
+	t.Run("Arithmetics", func(t *testing.T) {
+		t.Run("BinaryOperations", func(t *testing.T) {
+			t.Run("5 + 3 = 8", func(t *testing.T) {
+				parser := lexer.NewLexer("5 + 3")
+				interpreter, err := NewInterpreter(parser)
+				require.NoError(t, err)
 
-	t.Run("5 + 3 + 10 = 18", func(t *testing.T) {
-		parser := lexer.NewLexer("5 + 3 + 10")
-		interpreter, err := NewInterpreter(parser)
-		require.NoError(t, err)
+				result, err := interpreter.Interpret()
+				require.NoError(t, err)
+				require.Equal(t, 8, result)
+			})
 
-		result, err := interpreter.Interpret()
-		require.NoError(t, err)
-		require.Equal(t, 18, result)
-	})
+			t.Run("5 + 3 + 10 = 18", func(t *testing.T) {
+				parser := lexer.NewLexer("5 + 3 + 10")
+				interpreter, err := NewInterpreter(parser)
+				require.NoError(t, err)
 
-	t.Run("5 * 3 + 10 = 25", func(t *testing.T) {
-		parser := lexer.NewLexer("5 * 3 + 10")
-		interpreter, err := NewInterpreter(parser)
-		require.NoError(t, err)
+				result, err := interpreter.Interpret()
+				require.NoError(t, err)
+				require.Equal(t, 18, result)
+			})
 
-		result, err := interpreter.Interpret()
-		require.NoError(t, err)
-		require.Equal(t, 25, result)
-	})
+			t.Run("5 * 3 + 10 = 25", func(t *testing.T) {
+				parser := lexer.NewLexer("5 * 3 + 10")
+				interpreter, err := NewInterpreter(parser)
+				require.NoError(t, err)
 
-	t.Run("(5 + 3) * 2 = 16", func(t *testing.T) {
-		parser := lexer.NewLexer("(5 + 3) * 2")
-		interpreter, err := NewInterpreter(parser)
-		require.NoError(t, err)
+				result, err := interpreter.Interpret()
+				require.NoError(t, err)
+				require.Equal(t, 25, result)
+			})
 
-		result, err := interpreter.Interpret()
-		require.NoError(t, err)
-		require.Equal(t, 16, result)
+			t.Run("(5 + 3) * 2 = 16", func(t *testing.T) {
+				parser := lexer.NewLexer("(5 + 3) * 2")
+				interpreter, err := NewInterpreter(parser)
+				require.NoError(t, err)
+
+				result, err := interpreter.Interpret()
+				require.NoError(t, err)
+				require.Equal(t, 16, result)
+			})
+		})
+
+		t.Run("Unary Operations", func(t *testing.T) {
+			t.Run("5 + -3", func(t *testing.T) {
+				parser := lexer.NewLexer("5 + -3")
+				interpreter, err := NewInterpreter(parser)
+				require.NoError(t, err)
+				
+				result, err := interpreter.Interpret()
+				require.NoError(t, err)
+				require.Equal(t, 2, result)
+			})
+
+
+			t.Run("-(-3)", func(t *testing.T) {
+				parser := lexer.NewLexer("-(-3)")
+				interpreter, err := NewInterpreter(parser)
+				require.NoError(t, err)
+				
+				result, err := interpreter.Interpret()
+				require.NoError(t, err)
+				require.Equal(t, 3, result)
+			})
+		})
 	})
 }
