@@ -14,12 +14,12 @@ type EvaluatorVisitor struct {
 func (r *EvaluatorVisitor) visitOperationNode(node ast.BinaryOperation) (int, error) {
 	operation := node.GetToken().TokenType
 
-	left, err := r.Visit(node.GetLeft())
+	left, err := r.Visit(node.Left)
 	if err != nil {
 		return 0, err
 	}
 
-	right, err := r.Visit(node.GetRight())
+	right, err := r.Visit(node.Right)
 	if err != nil {
 		return 0, err
 	}
@@ -31,7 +31,7 @@ func (r *EvaluatorVisitor) visitOperationNode(node ast.BinaryOperation) (int, er
 		return left + right, nil
 	} else if operation == lexer.MUL {
 		return left * right, nil
-	} else if operation == lexer.DIV {
+	} else if operation == lexer.INTEGER_DIV {
 		return left / right, nil
 	}
 	
@@ -42,7 +42,7 @@ func (r *EvaluatorVisitor) visitOperationNode(node ast.BinaryOperation) (int, er
 func (r *EvaluatorVisitor) visitUnaryNode(node ast.UnaryOperation) (int, error) {
 	operation := node.GetToken().TokenType
 
-	right, err := r.Visit(node.GetRight())
+	right, err := r.Visit(node.Right)
 	if err != nil {
 		return 0, err
 	}
@@ -57,11 +57,11 @@ func (r *EvaluatorVisitor) visitUnaryNode(node ast.UnaryOperation) (int, error) 
 }
 
 func (r *EvaluatorVisitor) visitIntNode(node ast.IntNode) (int, error) {
-	return node.GetValue(), nil
+	return node.Value, nil
 }
 
 func (r *EvaluatorVisitor) visitCompound(node ast.Compound) (int, error) {
-	for _, v := range node.GetChildren() {
+	for _, v := range node.Children {
 		r.Visit(v)
 	}
 	return 0, nil
@@ -72,8 +72,8 @@ func (r *EvaluatorVisitor) visitNoOp(node ast.NoOp) (int, error) {
 }
 
 func (r *EvaluatorVisitor) visitAssign(node ast.AssignOperation) (int, error) {
-	varName := node.GetLeft().(ast.Var).GetValue()
-	rightValue, err := r.Visit(node.GetRight())
+	varName := node.Left.(ast.Var).Value
+	rightValue, err := r.Visit(node.Right)
 	if err != nil {
 		return ErrorCode, nil
 	}
@@ -82,7 +82,7 @@ func (r *EvaluatorVisitor) visitAssign(node ast.AssignOperation) (int, error) {
 }
 
 func (r *EvaluatorVisitor) visitVar(node ast.Var) (int, error) {
-	varName := node.GetValue()
+	varName := node.Value
 	varValue, ok := r.GloabalScope[varName]
 	if !ok {
 		return ErrorCode, fmt.Errorf("var %v is not initialized", varName)
@@ -90,6 +90,7 @@ func (r *EvaluatorVisitor) visitVar(node ast.Var) (int, error) {
 	return varValue.(int), nil
 }
 
+//TODO update visits for new ast nodes
 func (r *EvaluatorVisitor) Visit(node ast.Node) (int, error) {
 	castedOpNode, ok := node.(ast.BinaryOperation)
 	if ok {

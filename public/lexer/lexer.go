@@ -52,14 +52,32 @@ func (r *BasicLexer) isOnDigit() bool {
 	return unicode.IsDigit(r.currentRune())
 }
 
-func (r *BasicLexer) parseInteger() (string, error) {
+func (r *BasicLexer) parseNumber() BasicToken {
 	result := ""
 	for !r.IsReachedEOF && r.isOnDigit() {
 		result += string(*r.currentChar())
 		r.advance()
 	}
 
-	return result, nil
+	if r.currentRune() == '.' {
+		result += string(*r.currentChar())
+		r.advance()
+
+		for r.currentChar() != nil || unicode.IsDigit(r.currentRune()) {
+			result += string(*r.currentChar())
+			r.advance()
+		}
+		
+		return BasicToken{
+			TokenType: REAL,
+			TokenValue: result,
+		}
+	}
+
+	return BasicToken{
+		TokenType: INTEGER,
+		TokenValue: result,
+	}
 }
 
 func (r *BasicLexer) skipWhitespace() {
@@ -118,15 +136,18 @@ func (r *BasicLexer) NextToken() (BasicToken, error) {
 			continue
 		}
 
+
+
 		currentRune := r.currentRune()
 
+		if currentRune == '{' {
+			r.advance()
+			r.skipComment()
+			continue
+		} 
+		
 		if r.isOnDigit() {
-			result, err := r.parseInteger()
-			if err != nil {
-				return BasicToken{}, err
-			}
-			token := BasicToken{TokenType: INTEGER, TokenValue: result}
-			return token,  nil
+			return r.parseNumber(), nil
 		} else if currentRune == '+' {
 			token := BasicToken{TokenType: PLUS}
 			r.advance()
@@ -140,7 +161,7 @@ func (r *BasicLexer) NextToken() (BasicToken, error) {
 			r.advance()
 			return token, nil
 		} else if currentRune == '/' {
-			token := BasicToken { TokenType: DIV }
+			token := BasicToken { TokenType: FLOAT_DIV}
 			r.advance()
 			return token, nil
 		} else if currentRune == '(' {
@@ -162,6 +183,18 @@ func (r *BasicLexer) NextToken() (BasicToken, error) {
 			return token, nil
 		} else if unicode.IsLetter(currentRune) {
 			return r.identifier(), nil
+		} else if currentRune == ':' {
+			r.advance()
+			token := BasicToken{ TokenType: COLON }
+			return token, nil
+		} else if currentRune == ',' {
+			r.advance()
+			token := BasicToken{ TokenType: COMMA}
+			return token, nil
+		} else if currentRune == '/' {
+			r.advance()
+			token := BasicToken{ TokenType: FLOAT_DIV }
+			return token, nil
 		}
 
 	}

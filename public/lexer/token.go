@@ -8,7 +8,6 @@ const (
 	MINUS
 	PLUS
 	MUL
-	DIV
 	LPAREN
 	RPAREN
 	BEGIN
@@ -23,6 +22,10 @@ const (
 	REAL
 	REAL_DECLARATION
 	INTEGER_DECLARAION
+	COLON
+	COMMA
+	FLOAT_DIV
+	INTEGER_DIV
 )
 
 type BasicToken struct {

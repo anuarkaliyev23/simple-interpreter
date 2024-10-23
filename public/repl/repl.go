@@ -4,9 +4,9 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-
-	"github.com/anuarkaliyev23/simple-interpreter-go/public/interpreter"
-	"github.com/anuarkaliyev23/simple-interpreter-go/public/lexer"
+	//
+	// "github.com/anuarkaliyev23/simple-interpreter-go/public/interpreter"
+	// "github.com/anuarkaliyev23/simple-interpreter-go/public/lexer"
 )
 
 type Interpreter interface {
@@ -20,23 +20,24 @@ type Repl struct {
 
 func (r Repl) Iter() error {
 	fmt.Printf("%v", r.Prefix)
-	text, err := r.Reader.ReadString('\n')
-	if err != nil {
-		return err
-	}
-	lexer := lexer.NewLexer(text)
+	// text, err := r.Reader.ReadString('\n')
+	// if err != nil {
+	// 	return err
+	// }
+	// // lexer := lexer.NewLexer(text)
+	//
+	// // parser, err := interpreter.NewParser(lexer)
+	// if err != nil {
+	// 	return err
+	// }
+	//
+	//
+	// // result, err := parser.Interpret()
+	// if err != nil {
+	// 	return err
+	// }
 
-	interpreter, err := interpreter.NewInterpreter(lexer)
-	if err != nil {
-		return err
-	}
-
-	result, err := interpreter.Interpret()
-	if err != nil {
-		return err
-	}
-
-	fmt.Println(result)
+	// fmt.Println(result)
 	return nil
 }
 

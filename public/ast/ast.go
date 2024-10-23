@@ -11,12 +11,6 @@ type Node interface {
 	GetToken() lexer.BasicToken
 }
 
-type BinaryNode interface {
-	Node
-	GetLeft() Node
-	GetRight() Node
-}
-
 type BasicNode struct {
 	token lexer.BasicToken
 }
@@ -27,12 +21,9 @@ func (r BasicNode) GetToken() lexer.BasicToken {
 
 type IntNode struct {
 	BasicNode
-	value int
+	Value int
 }
 
-func (r IntNode) GetValue() int {
-	return r.value
-}
 
 func NewIntNode(t lexer.BasicToken) (IntNode, error) {
 	if (t.TokenType != lexer.INTEGER) {
@@ -45,7 +36,31 @@ func NewIntNode(t lexer.BasicToken) (IntNode, error) {
 	}
 
 	return IntNode{
-		value: parsedValue,
+		Value: parsedValue,
+		BasicNode: BasicNode{
+			token: t,
+		},
+	}, nil
+}
+
+
+type RealNode struct {
+	BasicNode
+	Value float64
+}
+
+func NewRealNode(t lexer.BasicToken) (RealNode, error) {
+	if t.TokenType != lexer.REAL {
+		return RealNode{}, fmt.Errorf("Cannot parse token %v to Real AST node", t)
+	}
+
+	parsedValue, err := strconv.ParseFloat(t.TokenValue, 64)
+	if err != nil {
+		return RealNode{}, nil
+	}
+
+	return RealNode{
+		Value: parsedValue,
 		BasicNode: BasicNode{
 			token: t,
 		},
@@ -54,16 +69,8 @@ func NewIntNode(t lexer.BasicToken) (IntNode, error) {
 
 type BinaryOperation struct {
 	BasicNode
-	left  Node
-	right Node
-}
-
-func (r BinaryOperation) GetLeft() Node {
-	return r.left
-}
-
-func (r BinaryOperation) GetRight() Node {
-	return r.right
+	Left  Node
+	Right Node
 }
 
 func NewBinaryOperation(left Node, right Node, operation lexer.BasicToken) BinaryOperation {
@@ -71,18 +78,14 @@ func NewBinaryOperation(left Node, right Node, operation lexer.BasicToken) Binar
 		BasicNode: BasicNode{
 			token: operation,
 		},
-		left:  left,
-		right: right,
+		Left:  left,
+		Right: right,
 	}
 }
 
 type UnaryOperation struct {
 	BasicNode
-	right Node
-}
-
-func (r UnaryOperation) GetRight() Node {
-	return r.right
+	Right Node
 }
 
 func NewUnaryOperation(right Node, operation lexer.BasicToken) UnaryOperation {
@@ -90,7 +93,7 @@ func NewUnaryOperation(right Node, operation lexer.BasicToken) UnaryOperation {
 		BasicNode: BasicNode{
 			token: operation,
 		},
-		right: right,
+		Right: right,
 	}
 }
 
@@ -106,11 +109,7 @@ func NewAssignt(left Node, right Node, operation lexer.BasicToken) AssignOperati
 
 type Var struct {
 	BasicNode
-	value string
-}
-
-func (r Var) GetValue() string {
-	return r.value
+	Value string
 }
 
 func NewVar(token lexer.BasicToken) (Var, error) {
@@ -122,17 +121,13 @@ func NewVar(token lexer.BasicToken) (Var, error) {
 		BasicNode: BasicNode{
 			token: token,
 		},
-		value: token.TokenValue,
+		Value: token.TokenValue,
 	}, nil
 }
 
 type Compound struct {
 	BasicNode
-	children []Node
-}
-
-func (r Compound) GetChildren() []Node {
-	return r.children
+	Children []Node
 }
 
 func NewCompound(children []Node, token lexer.BasicToken) Compound {
@@ -140,7 +135,7 @@ func NewCompound(children []Node, token lexer.BasicToken) Compound {
 		BasicNode: BasicNode{
 			token: token,
 		},
-		children: children,
+		Children: children,
 	}
 }
 
@@ -155,5 +150,67 @@ func NewNoOp() NoOp {
 				TokenType: lexer.SEMICOLON,
 			},
 		},
+	}
+}
+
+type TypeSpec struct {
+	BasicNode
+	Value string
+}
+
+func NewTypeSpec(token lexer.BasicToken) TypeSpec {
+	return TypeSpec{
+		BasicNode: BasicNode{
+			token: token,
+		},
+		Value: token.TokenValue,
+	}
+}
+
+type VarDeclaration struct {
+	BasicNode
+	Variable Var
+	TypeSpec TypeSpec
+}
+
+func NewVariableDeclaration(variable Var, typeSpec TypeSpec, token lexer.BasicToken) VarDeclaration {
+	return VarDeclaration {
+		BasicNode: BasicNode{
+			token: token,
+		},
+		Variable: variable,
+		TypeSpec: typeSpec,
+	}
+}
+
+type Block struct {
+	BasicNode
+	Declarations []VarDeclaration
+	Compound Compound
+}
+
+func NewBlock(declarations []VarDeclaration, compound Compound, token lexer.BasicToken) Block {
+	return Block{
+		BasicNode: BasicNode{
+			token: token,
+		},
+		Declarations: declarations,
+		Compound: compound,
+	}
+}
+
+type Program struct {
+	BasicNode
+	Name string
+	Block Block
+}
+
+func NewProgram(name string, block Block, token lexer.BasicToken) Program {
+	return Program{
+		BasicNode: BasicNode{
+			token: token,
+		},
+		Block: block,
+		Name: name,
 	}
 }
