@@ -1,6 +1,11 @@
 package ast
 
-import "github.com/anuarkaliyev23/simple-interpreter-go/public/lexer"
+import (
+	"fmt"
+	"strconv"
+
+	"github.com/anuarkaliyev23/simple-interpreter-go/public/lexer"
+)
 
 type Node interface {
 	GetToken() lexer.BasicToken
@@ -29,13 +34,22 @@ func (r IntNode) GetValue() int {
 	return r.value
 }
 
-func NewIntNode(t lexer.BasicToken, value int) IntNode {
+func NewIntNode(t lexer.BasicToken) (IntNode, error) {
+	if (t.TokenType != lexer.INTEGER) {
+		return IntNode{}, fmt.Errorf("Cannot parse token %v to Integer AST node", t)
+	}
+
+	parsedValue, err := strconv.Atoi(t.TokenValue)
+	if err != nil {
+		return IntNode{}, err
+	}
+
 	return IntNode{
-		value: value,
+		value: parsedValue,
 		BasicNode: BasicNode{
 			token: t,
 		},
-	}
+	}, nil
 }
 
 type BinaryOperation struct {
@@ -99,13 +113,17 @@ func (r Var) GetValue() string {
 	return r.value
 }
 
-func NewVar(name string, token lexer.BasicToken) Var {
+func NewVar(token lexer.BasicToken) (Var, error) {
+	if token.TokenType != lexer.ID {
+		return Var{}, fmt.Errorf("Cannot parse token %v to AST var node", token)
+	}
+
 	return Var{
 		BasicNode: BasicNode{
 			token: token,
 		},
-		value: name,
-	}
+		value: token.TokenValue,
+	}, nil
 }
 
 type Compound struct {

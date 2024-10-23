@@ -63,7 +63,7 @@ func TestBasicLexer_NextToken(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, INTEGER, token.TokenType)
 		require.Equal(t, 1, lexer.Position) 
-		require.Equal(t, 5, token.TokenValue.(int))
+		require.Equal(t, "5", token.TokenValue)
 	})
 
 	t.Run("Consecutive calls", func(t *testing.T) {
@@ -105,7 +105,7 @@ func TestBasicLexer_NextToken(t *testing.T) {
 		require.Equal(t, token2.TokenType, RPAREN)
 	})
 
-	t.Run(`BEGIN END.`, func(t *testing.T) {
+	t.Run("BEGIN END.", func(t *testing.T) {
 		lexer := NewLexer(`
 			BEGIN
 			END.
@@ -114,6 +114,54 @@ func TestBasicLexer_NextToken(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, BEGIN, token.TokenType)
 		
+		token, err = lexer.NextToken()
+		require.NoError(t, err)
+		require.Equal(t, END, token.TokenType)
+
+		token, err = lexer.NextToken()
+		require.NoError(t, err)
+		require.Equal(t, DOT, token.TokenType)
+	})
+
+	t.Run("variables", func(t *testing.T) {
+		lexer := NewLexer(`
+			BEGIN
+				BEGIN
+					number := 2;
+				END
+			END.
+		`)
+		token, err := lexer.NextToken()
+		require.NoError(t, err)
+		require.Equal(t, BEGIN, token.TokenType)
+
+
+		token, err = lexer.NextToken()
+		require.NoError(t, err)
+		require.Equal(t, BEGIN, token.TokenType)
+
+		token, err = lexer.NextToken()
+		require.NoError(t, err)
+		require.Equal(t, ID, token.TokenType)
+		require.Equal(t, "number", token.TokenValue)
+
+		token, err = lexer.NextToken()
+		require.NoError(t, err)
+		require.Equal(t, ASSIGN, token.TokenType)
+
+
+		token, err = lexer.NextToken()
+		require.NoError(t, err)
+		require.Equal(t, INTEGER, token.TokenType)
+
+		token, err = lexer.NextToken()
+		require.NoError(t, err)
+		require.Equal(t, SEMICOLON, token.TokenType)
+
+		token, err = lexer.NextToken()
+		require.NoError(t, err)
+		require.Equal(t, END, token.TokenType)
+
 		token, err = lexer.NextToken()
 		require.NoError(t, err)
 		require.Equal(t, END, token.TokenType)

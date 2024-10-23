@@ -2,7 +2,6 @@ package lexer
 
 import (
 	"fmt"
-	"strconv"
 	"unicode"
 )
 
@@ -53,25 +52,27 @@ func (r *BasicLexer) isOnDigit() bool {
 	return unicode.IsDigit(r.currentRune())
 }
 
-func (r *BasicLexer) parseInteger() (int, error) {
+func (r *BasicLexer) parseInteger() (string, error) {
 	result := ""
 	for !r.IsReachedEOF && r.isOnDigit() {
 		result += string(*r.currentChar())
 		r.advance()
 	}
 
-	i, err := strconv.Atoi(result)
-	if err != nil {
-		return 0, err
-	}
-
-	return i, nil
+	return result, nil
 }
 
 func (r *BasicLexer) skipWhitespace() {
 	if !r.IsReachedEOF && r.isOnSpace() {
 		r.advance()
 	}
+}
+
+func (r *BasicLexer) skipComment() {
+	for r.currentRune() != '}' {
+		r.advance()
+	}
+	r.advance()
 }
 
 func (r *BasicLexer) handleNoValueToken(symbol rune, token BasicToken) (BasicToken, error) {
@@ -99,8 +100,15 @@ func (r *BasicLexer) identifier() BasicToken {
 		r.advance()
 	}
 
-	reserved := ReservedKeywords[result]
-	return reserved
+	reserved, ok := ReservedKeywords[result]
+	if ok {
+		return reserved
+	} else {
+		return BasicToken{
+			TokenType: ID,
+			TokenValue: result,
+		}
+	}
 }
 
 func (r *BasicLexer) NextToken() (BasicToken, error) {

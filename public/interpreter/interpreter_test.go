@@ -1,6 +1,7 @@
 package interpreter
 
 import (
+	"strconv"
 	"testing"
 
 	"github.com/anuarkaliyev23/simple-interpreter-go/public/ast"
@@ -24,22 +25,12 @@ func TestBasicInterpreter_Expr(t *testing.T) {
 			unaryNode := node.(ast.BinaryOperation).GetLeft()
 			require.IsType(t, ast.UnaryOperation{}, unaryNode)
 			require.Equal(t, lexer.MINUS, unaryNode.GetToken().TokenType)
+	
 
-			require.Equal(t, ast.NewIntNode(
-				lexer.BasicToken{
-					TokenType:  lexer.INTEGER,
-					TokenValue: 5,
-				},
-				5,
-			), unaryNode.(ast.UnaryOperation).GetRight())
+			require.Equal(t, intNode(5) , unaryNode.(ast.UnaryOperation).GetRight())
+	
 
-			require.Equal(t, ast.NewIntNode(
-				lexer.BasicToken{
-					TokenType:  lexer.INTEGER,
-					TokenValue: 3,
-				},
-				3,
-			), node.(ast.BinaryOperation).GetRight())
+			require.Equal(t, intNode(3), node.(ast.BinaryOperation).GetRight())
 		})
 
 		t.Run("+5 + 3", func(t *testing.T) {
@@ -56,21 +47,8 @@ func TestBasicInterpreter_Expr(t *testing.T) {
 			require.IsType(t, ast.UnaryOperation{}, unaryNode)
 			require.Equal(t, lexer.PLUS, unaryNode.GetToken().TokenType)
 
-			require.Equal(t, ast.NewIntNode(
-				lexer.BasicToken{
-					TokenType:  lexer.INTEGER,
-					TokenValue: 5,
-				},
-				5,
-			), unaryNode.(ast.UnaryOperation).GetRight())
-
-			require.Equal(t, ast.NewIntNode(
-				lexer.BasicToken{
-					TokenType:  lexer.INTEGER,
-					TokenValue: 3,
-				},
-				3,
-			), node.(ast.BinaryOperation).GetRight())
+			require.Equal(t, intNode(5), unaryNode.(ast.UnaryOperation).GetRight())		
+			require.Equal(t, intNode(3), node.(ast.BinaryOperation).GetRight())
 		})
 
 		t.Run("+5 + -3", func(t *testing.T) {
@@ -87,25 +65,13 @@ func TestBasicInterpreter_Expr(t *testing.T) {
 			require.IsType(t, ast.UnaryOperation{}, leftUnaryNode)
 			require.Equal(t, lexer.PLUS, leftUnaryNode.GetToken().TokenType)
 
-			require.Equal(t, ast.NewIntNode(
-				lexer.BasicToken{
-					TokenType:  lexer.INTEGER,
-					TokenValue: 5,
-				},
-				5,
-			), leftUnaryNode.(ast.UnaryOperation).GetRight())
+			require.Equal(t, intNode(5), leftUnaryNode.(ast.UnaryOperation).GetRight())
 
 			rightUnaryNode := node.(ast.BinaryOperation).GetRight()
 			require.IsType(t, ast.UnaryOperation{}, rightUnaryNode)
 			require.Equal(t, lexer.MINUS, rightUnaryNode.GetToken().TokenType)
 
-			require.Equal(t, ast.NewIntNode(
-				lexer.BasicToken{
-					TokenType:  lexer.INTEGER,
-					TokenValue: 3,
-				},
-				3,
-			), rightUnaryNode.(ast.UnaryOperation).GetRight())
+			require.Equal(t, intNode(3), rightUnaryNode.(ast.UnaryOperation).GetRight())
 		})
 	})
 	t.Run("Binary Operations", func(t *testing.T) {
@@ -119,21 +85,9 @@ func TestBasicInterpreter_Expr(t *testing.T) {
 			require.IsType(t, ast.BinaryOperation{}, node)
 			require.Equal(t, lexer.PLUS, node.GetToken().TokenType)
 
-			require.Equal(t, ast.NewIntNode(
-				lexer.BasicToken{
-					TokenType:  lexer.INTEGER,
-					TokenValue: 5,
-				},
-				5,
-			), node.(ast.BinaryOperation).GetLeft())
 
-			require.Equal(t, ast.NewIntNode(
-				lexer.BasicToken{
-					TokenType:  lexer.INTEGER,
-					TokenValue: 3,
-				},
-				3,
-			), node.(ast.BinaryOperation).GetRight())
+			require.Equal(t, intNode(5), node.(ast.BinaryOperation).GetLeft())
+			require.Equal(t, intNode(3), node.(ast.BinaryOperation).GetRight())
 		})
 
 		t.Run("(2 + 3) * 4", func(t *testing.T) {
@@ -149,32 +103,24 @@ func TestBasicInterpreter_Expr(t *testing.T) {
 			require.IsType(t, ast.BinaryOperation{}, plusNode)
 			require.Equal(t, lexer.PLUS, plusNode.GetToken().TokenType)
 
-			require.Equal(t, ast.NewIntNode(
-				lexer.BasicToken{
-					TokenType:  lexer.INTEGER,
-					TokenValue: 2,
-				},
-				2,
-			), plusNode.(ast.BinaryOperation).GetLeft())
 
-			require.Equal(t, ast.NewIntNode(
-				lexer.BasicToken{
-					TokenType:  lexer.INTEGER,
-					TokenValue: 3,
-				},
-				3,
-			), plusNode.(ast.BinaryOperation).GetRight())
+			
+			require.Equal(t, intNode(2), plusNode.(ast.BinaryOperation).GetLeft())
 
-			require.Equal(t, ast.NewIntNode(
-				lexer.BasicToken{
-					TokenType:  lexer.INTEGER,
-					TokenValue: 4,
-				},
-				4,
-			), node.(ast.BinaryOperation).GetRight())
+			require.Equal(t, intNode(3), plusNode.(ast.BinaryOperation).GetRight())
+
+			require.Equal(t, intNode(4), node.(ast.BinaryOperation).GetRight())
 		})
 
 	})
+}
+
+func intNode(value int) ast.IntNode{
+	node, _ := ast.NewIntNode(lexer.BasicToken{
+		TokenType: lexer.INTEGER,
+		TokenValue: strconv.Itoa(value),
+	})
+	return node
 }
 
 func TestBasicInterpreter_Interpret(t *testing.T) {
@@ -246,3 +192,22 @@ func TestBasicInterpreter_Interpret(t *testing.T) {
 		})
 	})
 }
+
+// func TestBasicInterpreter_Parse(t *testing.T) {
+// 	t.Run("variables", func(t *testing.T) {
+// 		parser := lexer.NewLexer(`
+// 			BEGIN
+// 				BEGIN
+//         			number := 2;
+//         			a := number * 2;
+// 				END;
+// 				x := 11;
+// 			END.
+// 		`)
+// 		interpreter, err := NewInterpreter(parser)
+// 		require.NoError(t, err)
+// 		parsed, err := interpreter.Parse()
+// 		require.NoError(t, err)
+// 		require.NotNil(t, parsed)
+// 	})
+// }

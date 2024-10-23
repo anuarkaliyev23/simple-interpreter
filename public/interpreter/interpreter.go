@@ -58,8 +58,7 @@ func (r *BasicInterpreter) factor() (ast.Node, error) {
 		if err != nil {
 			return nil, err
 		}
-		value := token.TokenValue
-		return ast.NewIntNode(*token, value.(int)), nil
+		return ast.NewIntNode(*token)
 	} else if token.TokenType == lexer.LPAREN {
 		if err := r.Lexer.Eat(lexer.LPAREN); err != nil {
 			return nil, err
@@ -73,7 +72,10 @@ func (r *BasicInterpreter) factor() (ast.Node, error) {
 			return nil, err
 		}
 		return result, err
+	} else if token.TokenType == lexer.ID {
+		return r.variable()
 	}
+
 	return nil, fmt.Errorf("Could not read factor")
 }
 
@@ -157,17 +159,22 @@ func (r *BasicInterpreter) empty() (ast.Node) {
 }
 
 // var: ID
-func (r *BasicInterpreter) variable() (ast.Node) {
+func (r *BasicInterpreter) variable() (ast.Node, error) {
 	token := r.Lexer.GetCurrentToken()
-	node := ast.NewVar(token.TokenValue.(string), *token)
-	return node
+	node, err := ast.NewVar(*token)
+	return node, err
 }
 
 // assignment: variable ASSIGN expr
 func (r *BasicInterpreter) assignment() (ast.Node, error) {
-	left := r.variable()
+	left, err := r.variable()
+	if err != nil {
+		return nil, err
+	}
+
 	token := r.Lexer.GetCurrentToken()
 	r.Lexer.Eat(lexer.ASSIGN)
+
 	right, err := r.Expr()
 	if err != nil {
 		return nil, err
@@ -253,7 +260,7 @@ func (r *BasicInterpreter) program() (ast.Node, error) {
 	return node, nil
 }
 
-func (r *BasicInterpreter) parse() (ast.Node, error) {
+func (r *BasicInterpreter) Parse() (ast.Node, error) {
 	node, err := r.program()
 	if err != nil {
 		return nil, err

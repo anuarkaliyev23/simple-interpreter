@@ -18,14 +18,22 @@ const (
 	SEMICOLON
 	ID
 	EOF
+	PROGRAM
+	VAR
+	REAL
+	REAL_DECLARATION
+	INTEGER_DECLARAION
 )
 
 type BasicToken struct {
 	TokenType TokenType
-	TokenValue any
+	TokenValue string
 }
 
 func (r BasicToken) HasValue() bool {
-	return r.TokenType == INTEGER
+	return r.TokenType == INTEGER ||
+		r.TokenType == ID ||
+		r.TokenType == REAL
 }
+
 
