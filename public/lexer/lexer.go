@@ -40,6 +40,11 @@ func (r *BasicLexer) currentRune() rune {
 	return rune(*r.currentChar())
 }
 
+
+func (r *BasicLexer) peekRune() rune {
+	return rune(*r.peek())
+}
+
 func (r *BasicLexer) isOnSpace() bool {
 	return unicode.IsSpace(r.currentRune())
 }
@@ -106,7 +111,6 @@ func (r *BasicLexer) NextToken() (BasicToken, error) {
 		}
 
 		currentRune := r.currentRune()
-		peekRune := rune(*r.peek())
 
 		if r.isOnDigit() {
 			result, err := r.parseInteger()
@@ -135,7 +139,7 @@ func (r *BasicLexer) NextToken() (BasicToken, error) {
 			return r.handleNoValueToken('(', BasicToken{TokenType: LPAREN})
 		} else if currentRune == ')' {
 			return r.handleNoValueToken(')', BasicToken{TokenType: RPAREN})
-		} else if currentRune == ':' && peekRune == '=' {
+		} else if currentRune == ':' && r.peekRune() == '=' {
 			r.advance()
 			r.advance()
 			token := BasicToken {TokenType: ASSIGN}
@@ -148,6 +152,8 @@ func (r *BasicLexer) NextToken() (BasicToken, error) {
 			r.advance()
 			token := BasicToken{TokenType: DOT}
 			return token, nil
+		} else if unicode.IsLetter(currentRune) {
+			return r.identifier(), nil
 		}
 
 	}

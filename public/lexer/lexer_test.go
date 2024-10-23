@@ -49,6 +49,7 @@ func TestBasicLexer_advance(t *testing.T) {
 }
 
 func TestBasicLexer_NextToken(t *testing.T) {
+
 	t.Run("EOF expected", func(t *testing.T) {
 		lexer := NewLexer("")
 		token, err := lexer.NextToken()
@@ -93,7 +94,7 @@ func TestBasicLexer_NextToken(t *testing.T) {
 	})
 
 
-	t.Run("'5 + 3' RPAREN is handled", func(t *testing.T) {
+	t.Run("RPAREN is handled", func(t *testing.T) {
 		lexer := NewLexer("()")
 		token, err := lexer.NextToken()
 		require.NoError(t, err)
@@ -102,6 +103,24 @@ func TestBasicLexer_NextToken(t *testing.T) {
 		token2, err := lexer.NextToken()
 		require.NoError(t, err)
 		require.Equal(t, token2.TokenType, RPAREN)
+	})
+
+	t.Run(`BEGIN END.`, func(t *testing.T) {
+		lexer := NewLexer(`
+			BEGIN
+			END.
+		`)
+		token, err := lexer.NextToken()
+		require.NoError(t, err)
+		require.Equal(t, BEGIN, token.TokenType)
+		
+		token, err = lexer.NextToken()
+		require.NoError(t, err)
+		require.Equal(t, END, token.TokenType)
+
+		token, err = lexer.NextToken()
+		require.NoError(t, err)
+		require.Equal(t, DOT, token.TokenType)
 	})
 
 }
