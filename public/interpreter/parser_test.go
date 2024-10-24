@@ -225,7 +225,7 @@ func TestBasicParser_Parse(t *testing.T) {
 		require.NoError(t, err)
 		parsed, err := parser.Parse()
 		require.NoError(t, err)
-		require.NotNil(t, parsed)
+		require.IsType(t, ast.Program{}, parsed)
 	})
 }
 
@@ -304,3 +304,4 @@ func TestBasicParser_declarations(t *testing.T) {
 		require.Equal(t, "REAL", casted.TypeSpec.Value)
 	})
 }
+
