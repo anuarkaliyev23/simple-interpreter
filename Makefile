@@ -2,7 +2,7 @@ dependencies:
 	go mod vendor
 
 tests:
-	go test .
+	go test ./...
 
 run:
 	go run main.go

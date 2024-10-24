@@ -199,7 +199,7 @@ func TestBasicLexer_Initialize(t *testing.T) {
 		err := lexer.Initialize()
 		require.NoError(t, err)
 		require.Equal(t, INTEGER, lexer.CurrentToken.TokenType)
-		require.Equal(t, 5, lexer.CurrentToken.TokenValue)
+		require.Equal(t, "5", lexer.CurrentToken.TokenValue)
 	})
 
 	t.Run("Empty string produces EOF", func(t *testing.T) {

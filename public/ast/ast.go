@@ -173,7 +173,7 @@ type VarDeclaration struct {
 	TypeSpec TypeSpec
 }
 
-func NewVariableDeclaration(variable Var, typeSpec TypeSpec, token lexer.BasicToken) VarDeclaration {
+func NewVarDeclaration(variable Var, typeSpec TypeSpec, token lexer.BasicToken) VarDeclaration {
 	return VarDeclaration {
 		BasicNode: BasicNode{
 			token: token,

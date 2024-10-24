@@ -205,7 +205,7 @@ func (r *BasicParser) statementList() ([]ast.Node, error) {
 	}
 
 	if r.Lexer.GetCurrentToken().TokenType == lexer.ID {
-		return nil, fmt.Errorf("Cannot parse variables")
+		return r.variable()
 	}
 
 	return results, nil
