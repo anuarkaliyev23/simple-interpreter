@@ -229,8 +229,8 @@ func TestBasicParser_Parse(t *testing.T) {
 	})
 }
 
-func TestBasicParser_varDeclarations(t *testing.T) {
-	t.Run("var declaration", func(t *testing.T) {
+func TestBasicParser_varDeclaration(t *testing.T) {
+	t.Run("INTEGER var", func(t *testing.T) {
 		text := `
 			number: INTEGER;
 		`
@@ -251,16 +251,22 @@ func TestBasicParser_varDeclarations(t *testing.T) {
 	})
 
 
-	t.Run("multiple var declaration", func(t *testing.T) {
+	t.Run("REAL var", func(t *testing.T) {
 		text := `
-			number: INTEGER;
-			a, b, c: REAL;
+			number: REAL;
 		`
 		lxr := lexer.NewLexer(text)
 		parser, err := NewParser(lxr)
 		require.NoError(t, err)
 
-		_, err = parser.varDeclaration()
+		nodes, err := parser.varDeclaration()
 		require.NoError(t, err)
+		require.Len(t, nodes, 1)
+
+		numberNode := nodes[0]
+		require.IsType(t, ast.VarDeclaration{}, numberNode)
+		casted := numberNode.(ast.VarDeclaration)
+		require.Equal(t, "number", casted.Variable.Value)
+		require.Equal(t, "REAL", casted.TypeSpec.Value)
 	})
 }

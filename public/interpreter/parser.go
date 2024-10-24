@@ -295,7 +295,7 @@ func (r *BasicParser) typeSpec() (ast.Node, error) {
 		if err != nil {
 			return nil, err
 		}
-		return ast.NewRealNode(*token)
+		return ast.NewTypeSpec(*token), nil
 	}
 
 	return nil, fmt.Errorf("Unknown type specification %v", token.TokenType)
