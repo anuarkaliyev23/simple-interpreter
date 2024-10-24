@@ -270,3 +270,37 @@ func TestBasicParser_varDeclaration(t *testing.T) {
 		require.Equal(t, "REAL", casted.TypeSpec.Value)
 	})
 }
+
+func TestBasicParser_declarations(t *testing.T) {
+	t.Run("4 variable declarations expected", func(t *testing.T) {
+		text := `
+		VAR
+			number: INTEGER;
+			a, b, c: REAL;
+		`
+
+		lxr := lexer.NewLexer(text)
+		parser, err := NewParser(lxr)
+		require.NoError(t, err)
+
+		nodes, err := parser.declarations()
+		require.NoError(t, err)
+		require.Len(t, nodes, 4)
+
+		casted := nodes[0].(ast.VarDeclaration)
+		require.Equal(t, "number", casted.Variable.Value)
+		require.Equal(t, "INTEGER", casted.TypeSpec.Value)
+
+		casted = nodes[1].(ast.VarDeclaration)
+		require.Equal(t, "a", casted.Variable.Value)
+		require.Equal(t, "REAL", casted.TypeSpec.Value)
+	
+		casted = nodes[2].(ast.VarDeclaration)
+		require.Equal(t, "b", casted.Variable.Value)
+		require.Equal(t, "REAL", casted.TypeSpec.Value)
+
+		casted = nodes[3].(ast.VarDeclaration)
+		require.Equal(t, "c", casted.Variable.Value)
+		require.Equal(t, "REAL", casted.TypeSpec.Value)
+	})
+}
