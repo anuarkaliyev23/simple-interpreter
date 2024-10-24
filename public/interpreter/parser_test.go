@@ -208,7 +208,7 @@ func intNode(value int) ast.IntNode{
 // 	})
 // }
 
-func TestBasicInterpreter_Parse(t *testing.T) {
+func TestBasicParser_Parse(t *testing.T) {
 	t.Run("variables", func(t *testing.T) {
 		lxr := lexer.NewLexer(`
 			PROGRAM Part10;

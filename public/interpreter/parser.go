@@ -205,7 +205,11 @@ func (r *BasicParser) statementList() ([]ast.Node, error) {
 	}
 
 	if r.Lexer.GetCurrentToken().TokenType == lexer.ID {
-		return r.variable()
+		node, err := r.variable()
+		if err != nil {
+			return nil, err
+		}
+		results = append(results, node)
 	}
 
 	return results, nil
@@ -371,6 +375,7 @@ func (r *BasicParser) Parse() (ast.Node, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	if r.Lexer.GetCurrentToken().TokenType != lexer.EOF {
 		return nil, fmt.Errorf("EOF expected, got %v instead", r.Lexer.GetCurrentToken())
 	}
