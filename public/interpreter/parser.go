@@ -164,6 +164,11 @@ func (r *BasicParser) empty() ast.Node {
 func (r *BasicParser) variable() (ast.Node, error) {
 	token := r.Lexer.GetCurrentToken()
 	node, err := ast.NewVar(*token)
+	if err != nil {
+		return nil, err
+	}
+	
+	r.Lexer.Eat(lexer.ID)
 	return node, err
 }
 
@@ -261,7 +266,10 @@ func (r *BasicParser) program() (ast.Node, error) {
 	varNode, err := r.variable()
 	programName := varNode.GetToken().TokenValue
 
-	r.Lexer.Eat(lexer.SEMICOLON)
+	err = r.Lexer.Eat(lexer.SEMICOLON)
+	if err != nil {
+		return nil, err
+	}
 
 	block, err := r.block()
 	if err != nil {
@@ -282,8 +290,8 @@ func (r *BasicParser) typeSpec() (ast.Node, error) {
 			return nil, err
 		}
 		return ast.NewTypeSpec(*token), nil
-	} else if token.TokenType == lexer.REAL {
-		err := r.Lexer.Eat(lexer.INTEGER_DECLARAION)
+	} else if token.TokenType == lexer.REAL_DECLARATION {
+		err := r.Lexer.Eat(lexer.REAL_DECLARATION)
 		if err != nil {
 			return nil, err
 		}
@@ -346,6 +354,11 @@ func (r *BasicParser) varDeclaration() ([]ast.Node, error) {
 		return nil, err
 	}
 
+	err = r.Lexer.Eat(lexer.ID)
+	if err != nil {
+		return nil, err
+	}
+
 	varNodes = append(varNodes, firstVar)
 	for r.Lexer.GetCurrentToken().TokenType == lexer.COMMA {
 		r.Lexer.Eat(lexer.COMMA)
@@ -360,6 +373,9 @@ func (r *BasicParser) varDeclaration() ([]ast.Node, error) {
 	r.Lexer.Eat(lexer.COLON)
 
 	typeNode, err := r.typeSpec()
+	if err != nil {
+		return nil, err
+	}
 	
 	var declarations []ast.Node
 	for _, v := range varNodes {

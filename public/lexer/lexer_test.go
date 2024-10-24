@@ -171,6 +171,120 @@ func TestBasicLexer_NextToken(t *testing.T) {
 		require.Equal(t, DOT, token.TokenType)
 	})
 
+	t.Run("program", func(t *testing.T) {
+		t.Run("VAR block", func(t *testing.T) {
+			lexer := NewLexer(`
+				PROGRAM Part10;
+				VAR
+				   number     : INTEGER;
+				   a, b, c, x : INTEGER;
+				   y          : REAL;
+				BEGIN 
+				END. 
+			`)
+
+			expectTokenType(t, &lexer, PROGRAM)
+			expectTokenType(t, &lexer, ID)
+			expectTokenType(t, &lexer, SEMICOLON)
+
+			expectTokenType(t, &lexer, VAR)
+
+			expectTokenType(t, &lexer, ID)
+			expectTokenType(t, &lexer, COLON)
+			expectTokenType(t, &lexer, INTEGER_DECLARAION)
+			expectTokenType(t, &lexer, SEMICOLON)
+
+			expectTokenType(t, &lexer, ID)
+			expectTokenType(t, &lexer, COMMA)
+
+			expectTokenType(t, &lexer, ID)
+			expectTokenType(t, &lexer, COMMA)
+
+			expectTokenType(t, &lexer, ID)
+			expectTokenType(t, &lexer, COMMA)
+
+			expectTokenType(t, &lexer, ID)
+			expectTokenType(t, &lexer, COLON)
+			expectTokenType(t, &lexer, INTEGER_DECLARAION)
+			expectTokenType(t, &lexer, SEMICOLON)
+
+
+			expectTokenType(t, &lexer, ID)
+			expectTokenType(t, &lexer, COLON)
+			expectTokenType(t, &lexer, REAL_DECLARATION)
+			expectTokenType(t, &lexer, SEMICOLON)
+
+			expectTokenType(t, &lexer, BEGIN)
+			expectTokenType(t, &lexer, END)
+			expectTokenType(t, &lexer, DOT)
+		})
+
+		t.Run("Compound block", func(t *testing.T) {
+			lexer := NewLexer(`
+				PROGRAM Part10;
+				VAR
+				   number     : INTEGER;
+				   a, b, c, x : INTEGER;
+				   y          : REAL;
+				BEGIN 
+					BEGIN
+						number := 2
+					END;
+				END. 
+			`)
+
+			expectTokenType(t, &lexer, PROGRAM)
+			expectTokenType(t, &lexer, ID)
+			expectTokenType(t, &lexer, SEMICOLON)
+
+			expectTokenType(t, &lexer, VAR)
+
+			expectTokenType(t, &lexer, ID)
+			expectTokenType(t, &lexer, COLON)
+			expectTokenType(t, &lexer, INTEGER_DECLARAION)
+			expectTokenType(t, &lexer, SEMICOLON)
+
+			expectTokenType(t, &lexer, ID)
+			expectTokenType(t, &lexer, COMMA)
+
+			expectTokenType(t, &lexer, ID)
+			expectTokenType(t, &lexer, COMMA)
+
+			expectTokenType(t, &lexer, ID)
+			expectTokenType(t, &lexer, COMMA)
+
+			expectTokenType(t, &lexer, ID)
+			expectTokenType(t, &lexer, COLON)
+			expectTokenType(t, &lexer, INTEGER_DECLARAION)
+			expectTokenType(t, &lexer, SEMICOLON)
+
+
+			expectTokenType(t, &lexer, ID)
+			expectTokenType(t, &lexer, COLON)
+			expectTokenType(t, &lexer, REAL_DECLARATION)
+			expectTokenType(t, &lexer, SEMICOLON)
+
+			expectTokenType(t, &lexer, BEGIN)
+			expectTokenType(t, &lexer, BEGIN)
+			
+			expectTokenType(t, &lexer, ID)
+			expectTokenType(t, &lexer, ASSIGN)
+			expectTokenType(t, &lexer, INTEGER)
+
+			expectTokenType(t, &lexer, END)
+			expectTokenType(t, &lexer, SEMICOLON)
+
+			expectTokenType(t, &lexer, END)
+			expectTokenType(t, &lexer, DOT)
+		})
+	})
+
+}
+
+func expectTokenType(t *testing.T, lexer *BasicLexer, expectedTokenType TokenType) {
+	token, err := lexer.NextToken()
+	require.NoError(t, err)
+	require.Equal(t, expectedTokenType, token.TokenType)
 }
 
 func TestBasicLexer_Eat(t *testing.T) {

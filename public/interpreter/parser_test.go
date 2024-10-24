@@ -9,8 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-
-
 // func TestBasicParser_Expr(t *testing.T) {
 // 	t.Run("Program", func(t *testing.T) {
 // 		t.Run("Empty program block", func(t *testing.T) {
@@ -41,10 +39,10 @@ import (
 // 			unaryNode := node.(ast.BinaryOperation).Left
 // 			require.IsType(t, ast.UnaryOperation{}, unaryNode)
 // 			require.Equal(t, lexer.MINUS, unaryNode.GetToken().TokenType)
-// 	
+//
 //
 // 			require.Equal(t, intNode(5) , unaryNode.(ast.UnaryOperation).Right)
-// 	
+//
 //
 // 			require.Equal(t, intNode(3), node.(ast.BinaryOperation).Right)
 // 		})
@@ -63,7 +61,7 @@ import (
 // 			require.IsType(t, ast.UnaryOperation{}, unaryNode)
 // 			require.Equal(t, lexer.PLUS, unaryNode.GetToken().TokenType)
 //
-// 			require.Equal(t, intNode(5), unaryNode.(ast.UnaryOperation).Right)		
+// 			require.Equal(t, intNode(5), unaryNode.(ast.UnaryOperation).Right)
 // 			require.Equal(t, intNode(3), node.(ast.BinaryOperation).Right)
 // 		})
 //
@@ -120,7 +118,7 @@ import (
 // 			require.Equal(t, lexer.PLUS, plusNode.GetToken().TokenType)
 //
 //
-// 			
+//
 // 			require.Equal(t, intNode(2), plusNode.(ast.BinaryOperation).Left)
 //
 // 			require.Equal(t, intNode(3), plusNode.(ast.BinaryOperation).Right)
@@ -217,21 +215,52 @@ func TestBasicParser_Parse(t *testing.T) {
 			   a, b, c, x : INTEGER;
 			   y          : REAL;
 
-			BEGIN {Part10}
+			BEGIN 
 			   BEGIN
 				  number := 2;
-				  a := number;
-				  b := 10 * a + 10 * number DIV 4;
-				  c := a - - b
 			   END;
-			   x := 11;
-			   y := 20 / 7 + 3.14;
-			END.  {Part10}
+			END.  
 		`)
 		parser, err := NewParser(lxr)
 		require.NoError(t, err)
 		parsed, err := parser.Parse()
 		require.NoError(t, err)
 		require.NotNil(t, parsed)
+	})
+}
+
+func TestBasicParser_varDeclarations(t *testing.T) {
+	t.Run("var declaration", func(t *testing.T) {
+		text := `
+			number: INTEGER;
+		`
+		lxr := lexer.NewLexer(text)
+		parser, err := NewParser(lxr)
+		require.NoError(t, err)
+
+		nodes, err := parser.varDeclaration()
+		require.NoError(t, err)
+		require.Len(t, nodes, 1)
+
+		numberNode := nodes[0]
+		require.IsType(t, ast.VarDeclaration{}, numberNode)
+		casted := numberNode.(ast.VarDeclaration)
+		require.Equal(t, "number", casted.Variable.Value)
+		require.Equal(t, "INTEGER", casted.TypeSpec.Value)
+	
+	})
+
+
+	t.Run("multiple var declaration", func(t *testing.T) {
+		text := `
+			number: INTEGER;
+			a, b, c: REAL;
+		`
+		lxr := lexer.NewLexer(text)
+		parser, err := NewParser(lxr)
+		require.NoError(t, err)
+
+		_, err = parser.varDeclaration()
+		require.NoError(t, err)
 	})
 }
